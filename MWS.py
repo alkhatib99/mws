@@ -6,13 +6,16 @@ from PIL import Image, ImageTk
 import threading
 import requests
 from io import BytesIO
-import webbrowser
 import json
+import webbrowser
 
 # Splash and logo
 SPLASH_IMAGE_URL = "https://i.ibb.co/j9v2nvjT/new.png"
 LOGO_URL = "https://i.ibb.co/j9v2nvjT/new.png"
 
+wallet_account = None  # Holds decrypted private key
+
+# Default networks
 default_networks = {
     "Base": {
         "rpc": "https://mainnet.base.org",
@@ -31,14 +34,12 @@ default_networks = {
     }
 }
 
-wallet_account = None  # Holds decrypted private key
-
 def load_image_from_url(url, size):
     response = requests.get(url)
     img = Image.open(BytesIO(response.content)).resize(size, Image.Resampling.LANCZOS)
     return ImageTk.PhotoImage(img)
 
-def show_splash():
+def show_splash_then_connect():
     splash = tk.Toplevel()
     splash.overrideredirect(True)
     splash.geometry("300x300+600+300")
@@ -48,7 +49,11 @@ def show_splash():
     panel.image = img # type: ignore
     panel.pack(expand=True)
     root.withdraw()
-    splash.after(2500, lambda: (splash.destroy(), root.deiconify()))
+    def on_finish():
+        splash.destroy()
+        root.deiconify()
+        prompt_keystore()
+    splash.after(2500, on_finish)
 
 def enable_copy_paste(widget):
     widget.bind("<Control-c>", lambda e: widget.event_generate('<<Copy>>'))
@@ -61,6 +66,39 @@ def custom_paste(event, widget):
     except:
         return
 
+def prompt_keystore():
+    global wallet_account
+    disable_all()
+    file_path = filedialog.askopenfilename(filetypes=[("Keystore Files", "*.json")])
+    if not file_path:
+        messagebox.showwarning("Required", "Wallet must be connected to use the app.")
+        root.quit()
+        return
+    try:
+        with open(file_path, "r") as f:
+            keystore = json.load(f)
+        password = simpledialog.askstring("Wallet Password", "Enter wallet password:", show="*")
+        if not password:
+            root.quit()
+            return
+        decrypted_key = Account.decrypt(keystore, password)
+        wallet_account = Account.from_key(decrypted_key)
+        private_key_entry.insert(0, decrypted_key.hex())
+        private_key_entry.config(state="disabled")
+        status_label.config(text=f"✅ Connected: {wallet_account.address}")
+        enable_all()
+    except Exception as e:
+        messagebox.showerror("Connection Error", str(e))
+        root.quit()
+
+def disable_all():
+    for widget in control_widgets:
+        widget.config(state="disabled")
+
+def enable_all():
+    for widget in control_widgets:
+        widget.config(state="normal")
+
 def load_addresses_from_file():
     file_path = filedialog.askopenfilename(filetypes=[("Text Files", "*.txt")])
     if file_path:
@@ -71,26 +109,6 @@ def load_addresses_from_file():
                 addresses_text.insert(tk.END, "\n".join(addresses))
         except Exception as e:
             messagebox.showerror("Error", str(e))
-
-def load_keystore():
-    global wallet_account
-    file_path = filedialog.askopenfilename(filetypes=[("Keystore Files", "*.json")])
-    if not file_path:
-        return
-    try:
-        with open(file_path, "r") as f:
-            keystore = json.load(f)
-        password = simpledialog.askstring("Wallet Password", "Enter wallet password:", show="*")
-        if not password:
-            return
-        decrypted_key = Account.decrypt(keystore, password)
-        wallet_account = Account.from_key(decrypted_key)
-        private_key_entry.delete(0, tk.END)
-        private_key_entry.insert(0, decrypted_key.hex())
-        private_key_entry.config(state="disabled")
-        messagebox.showinfo("Wallet Connected", f"Connected to: {wallet_account.address}")
-    except Exception as e:
-        messagebox.showerror("Error", str(e))
 
 def send_funds():
     tx_output.delete("1.0", tk.END)
@@ -134,20 +152,7 @@ def send_funds():
             messagebox.showerror("Error", str(e))
     threading.Thread(target=process_transactions).start()
 
-def add_network():
-    name = simpledialog.askstring("Network Name", "Enter network name:")
-    rpc = simpledialog.askstring("RPC URL", "Enter RPC URL:")
-    chain_id = simpledialog.askinteger("Chain ID", "Enter Chain ID:")
-    explorer = simpledialog.askstring("Explorer URL (optional)", "Enter explorer base URL")
-    if name and rpc and chain_id:
-        default_networks[name] = {"rpc": rpc, "chain_id": chain_id, "explorer": explorer or ""}
-        network_menu['menu'].add_command(label=name, command=tk._setit(selected_network, name))
-        messagebox.showinfo("Network Added", f"{name} added.")
-
-def open_link(url):
-    webbrowser.open_new(url)
-
-# ==== UI ====
+# ==== UI Setup ====
 root = tk.Tk()
 root.title("Multi Wallet Sender")
 root.geometry("720x740")
@@ -156,54 +161,57 @@ root.configure(bg="#1e1e2f")
 logo_img = load_image_from_url(LOGO_URL, (100, 100))
 tk.Label(root, image=logo_img, bg="#1e1e2f").pack(pady=5)
 
-style_entry = {"font": ("Arial", 12), "bg": "#f0f0f0", "relief": "flat"}
+status_label = tk.Label(root, text="🔒 Wallet not connected", fg="yellow", bg="#1e1e2f", font=("Arial", 11, "italic"))
+status_label.pack()
 
+style_entry = {"font": ("Arial", 12), "bg": "#f0f0f0", "relief": "flat"}
+control_widgets = []
+
+# Private key (readonly)
 tk.Label(root, text="Private Key:", fg="white", bg="#1e1e2f", font=("Arial", 12, "bold")).pack()
 private_key_entry = tk.Entry(root, width=50, show="*", **style_entry)
 private_key_entry.pack(pady=2)
+control_widgets.append(private_key_entry)
 
-tk.Button(root, text="Connect Wallet (Keystore)", command=load_keystore, bg="#ffc107", fg="black", relief="flat").pack(pady=5)
-
+# Amount field
 tk.Label(root, text="Amount (ETH):", fg="white", bg="#1e1e2f", font=("Arial", 12, "bold")).pack()
 amount_entry = tk.Entry(root, width=15, **style_entry)
 amount_entry.pack(pady=2)
+control_widgets.append(amount_entry)
 
+# Network selector
 tk.Label(root, text="Select Network:", fg="white", bg="#1e1e2f", font=("Arial", 12, "bold")).pack()
 selected_network = tk.StringVar(value="Base")
 network_menu = tk.OptionMenu(root, selected_network, *default_networks.keys())
 network_menu.config(width=20, font=("Arial", 10))
 network_menu.pack(pady=5)
+control_widgets.append(network_menu)
 
-tk.Button(root, text="Add Custom Network", command=add_network, bg="#007acc", fg="white", relief="flat").pack(pady=4)
-
+# Addresses text area
 tk.Label(root, text="Recipient Addresses (one per line):", fg="white", bg="#1e1e2f", font=("Arial", 12, "bold")).pack()
 addresses_text = tk.Text(root, height=4, width=70, font=("Arial", 10), bg="#fafafa")
 addresses_text.pack(pady=2)
+control_widgets.append(addresses_text)
 
-tk.Button(root, text="Load Addresses from .txt", command=load_addresses_from_file, bg="#44475a", fg="white", relief="flat").pack(pady=5)
+load_btn = tk.Button(root, text="Load Addresses from .txt", command=load_addresses_from_file, bg="#44475a", fg="white", relief="flat")
+load_btn.pack(pady=5)
+control_widgets.append(load_btn)
 
-tk.Button(root, text="Send Funds", command=send_funds, bg="#28a745", fg="white", font=("Arial", 12, "bold"), relief="flat").pack(pady=10)
+send_btn = tk.Button(root, text="Send Funds", command=send_funds, bg="#28a745", fg="white", font=("Arial", 12, "bold"), relief="flat")
+send_btn.pack(pady=10)
+control_widgets.append(send_btn)
 
+# Transaction output
 tk.Label(root, text="Transaction Links:", fg="white", bg="#1e1e2f", font=("Arial", 12, "bold")).pack()
 tx_output = scrolledtext.ScrolledText(root, height=6, width=70, font=("Arial", 10), bg="#f5f5f5")
 tx_output.pack(pady=5)
 
-tk.Label(root, text="هذا البرنامج أحد الأدوات المستخدمة في المجتمع العربي الأكبر في الويب3 BAG\nThis tool is part of the tools used in the largest Arabic Web3 community – BAG", fg="lightgray", bg="#1e1e2f", font=("Arial", 10)).pack(pady=10)
-
-discord_icon = load_image_from_url("https://cdn-icons-png.flaticon.com/512/5968/5968756.png", (32, 32))
-x_icon = load_image_from_url("https://i.ibb.co/XZh8MkDc/twitter.png", (32, 32))
-
-links_frame = tk.Frame(root, bg="#1e1e2f")
-links_frame.pack(pady=5)
-
-tk.Label(links_frame, text="🌐", font=("Arial", 20), fg="white", bg="#1e1e2f", cursor="hand2").grid(row=0, column=0, padx=10)
-tk.Label(links_frame, text="💻", font=("Arial", 20), fg="white", bg="#1e1e2f", cursor="hand2").grid(row=0, column=1, padx=10)
-tk.Label(links_frame, image=discord_icon, bg="#1e1e2f", cursor="hand2").grid(row=0, column=2, padx=10)
-tk.Label(links_frame, image=x_icon, bg="#1e1e2f", cursor="hand2").grid(row=0, column=3, padx=10)
+# Branding note
+tk.Label(root, text="هذا البرنامج أحد الأدوات المستخدمة في المجتمع العربي الأكبر في الويب3 BAG\nThis tool is part of the largest Arabic Web3 community – BAG", fg="lightgray", bg="#1e1e2f", font=("Arial", 10)).pack(pady=10)
 
 enable_copy_paste(private_key_entry)
 enable_copy_paste(amount_entry)
 enable_copy_paste(addresses_text)
 
-show_splash()
+show_splash_then_connect()
 root.mainloop()
