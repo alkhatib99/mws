@@ -1,5 +1,0 @@
-flask==3.0.0
-web3==5.31.1
-gunicorn==21.2.0
-eth-account==0.8.1
-setuptools<81
