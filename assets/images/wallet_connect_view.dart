@@ -514,5 +514,3 @@ class WalletConnectView extends StatelessWidget {
 
 
 
-// This file is part of the MWS project.
-// It contains the WalletConnectView widget which is responsible for displaying

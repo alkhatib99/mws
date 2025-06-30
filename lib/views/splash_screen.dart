@@ -19,7 +19,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
-    
+
     // Initialize animation controller
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 2000),
@@ -108,7 +108,7 @@ class _SplashScreenState extends State<SplashScreen>
                               ),
                               child: const Center(
                                 child: CircularProgressIndicator(
-                                  color: AppTheme.primaryGreen,
+                                  color: AppTheme.primaryAccent,
                                 ),
                               ),
                             );
@@ -145,38 +145,39 @@ class _SplashScreenState extends State<SplashScreen>
                         ),
                       ),
                     ),
-                    
+
                     const SizedBox(height: 40),
-                    
+
                     // App title
                     Text(
                       'Web3 Multi Wallet Sender',
-                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        color: AppTheme.whiteText,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style:
+                          Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                color: AppTheme.whiteText,
+                                fontWeight: FontWeight.bold,
+                              ),
                       textAlign: TextAlign.center,
                     ),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     // Subtitle
                     Text(
                       'BAG Community Tool',
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: AppTheme.lightGrayText,
-                      ),
+                            color: AppTheme.lightGrayText,
+                          ),
                       textAlign: TextAlign.center,
                     ),
-                    
+
                     const SizedBox(height: 40),
-                    
+
                     // Loading indicator
                     const SizedBox(
                       width: 40,
                       height: 40,
                       child: CircularProgressIndicator(
-                        color: AppTheme.primaryGreen,
+                        color: AppTheme.primaryAccent,
                         strokeWidth: 3,
                       ),
                     ),
@@ -190,4 +191,3 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 }
-

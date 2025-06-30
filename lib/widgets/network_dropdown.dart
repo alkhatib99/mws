@@ -27,7 +27,7 @@ class NetworkDropdown extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           decoration: BoxDecoration(
-            color: AppTheme.lightBackground,
+            color: AppTheme.primaryBackground,
             borderRadius: BorderRadius.circular(8),
           ),
           child: DropdownButtonHideUnderline(
@@ -39,7 +39,7 @@ class NetworkDropdown extends StatelessWidget {
                 fontSize: 14,
                 fontFamily: 'Arial',
               ),
-              dropdownColor: AppTheme.lightBackground,
+              dropdownColor: AppTheme.primaryBackground,
               items: controller.networks.keys.map((String network) {
                 return DropdownMenuItem<String>(
                   value: network,

@@ -69,7 +69,7 @@ class TxOutputList extends StatelessWidget {
                           child: Text(
                             link,
                             style: const TextStyle(
-                              color: AppTheme.primaryBlue,
+                              color: AppTheme.blueAccent,
                               fontSize: 12,
                               decoration: TextDecoration.underline,
                               fontFamily: 'Arial',
@@ -97,7 +97,7 @@ class TxOutputList extends StatelessWidget {
                         icon: const Icon(
                           Icons.open_in_new,
                           size: 16,
-                          color: AppTheme.primaryBlue,
+                          color: AppTheme.blueAccent,
                         ),
                         tooltip: 'Open in browser',
                         constraints: const BoxConstraints(
@@ -122,7 +122,7 @@ class TxOutputList extends StatelessWidget {
       'Copied',
       'Transaction link copied to clipboard',
       snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: AppTheme.primaryGreen,
+      backgroundColor: AppTheme.successGreen,
       colorText: Colors.white,
       duration: const Duration(seconds: 2),
     );
