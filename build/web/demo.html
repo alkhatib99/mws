@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web3 Multi Wallet Sender - Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1e1e2f;
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .logo-container {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            width: 100px;
+            height: 100px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            background-color: #f0f0f0;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #333;
+            font-family: Arial, sans-serif;
+        }
+
+        .form-input:focus {
+            outline: 2px solid #007acc;
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .dropdown {
+            width: 100%;
+            padding: 12px 16px;
+            background-color: #f0f0f0;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #333;
+            font-family: Arial, sans-serif;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: Arial, sans-serif;
+            transition: background-color 0.3s;
+        }
+
+        .btn-primary {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #218838;
+        }
+
+        .btn-secondary {
+            background-color: #007acc;
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .btn-secondary:hover {
+            background-color: #0056b3;
+        }
+
+        .btn-neutral {
+            background-color: #44475a;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .btn-neutral:hover {
+            background-color: #5a5d70;
+        }
+
+        .output-container {
+            background-color: #fafafa;
+            border-radius: 8px;
+            padding: 16px;
+            min-height: 200px;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .output-placeholder {
+            color: #999;
+            font-style: italic;
+            text-align: center;
+            margin-top: 80px;
+        }
+
+        .tx-link {
+            display: block;
+            color: #007acc;
+            text-decoration: underline;
+            margin-bottom: 8px;
+            word-break: break-all;
+        }
+
+        .social-footer {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .multilingual-text {
+            color: #d3d3d3;
+            font-size: 12px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .social-link {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px;
+            background-color: #44475a;
+            border-radius: 8px;
+            text-decoration: none;
+            color: white;
+            min-width: 80px;
+            transition: background-color 0.3s;
+        }
+
+        .social-link:hover {
+            background-color: #5a5d70;
+        }
+
+        .social-icon {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        .social-label {
+            font-size: 12px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #28a745;
+        }
+
+        .splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #1e1e2f;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 1;
+            transition: opacity 0.5s ease-out;
+        }
+
+        .splash-logo {
+            width: 250px;
+            height: 250px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            margin-bottom: 30px;
+            animation: fadeInScale 2s ease-out;
+        }
+
+        .splash-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            animation: fadeIn 2s ease-out 0.5s both;
+        }
+
+        .splash-subtitle {
+            font-size: 16px;
+            color: #d3d3d3;
+            margin-bottom: 30px;
+            animation: fadeIn 2s ease-out 1s both;
+        }
+
+        .splash-loader {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #44475a;
+            border-top: 3px solid #28a745;
+            border-radius: 50%;
+            animation: spin 1s linear infinite, fadeIn 2s ease-out 1.5s both;
+        }
+
+        @keyframes fadeInScale {
+            0% {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .social-links {
+                gap: 10px;
+            }
+            
+            .social-link {
+                min-width: 60px;
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Splash Screen -->
+    <div id="splashScreen" class="splash-screen">
+        <img src="https://i.ibb.co/j9v2nvjT/new.png" alt="BAG Logo" class="splash-logo" onerror="this.style.display='none'">
+        <h1 class="splash-title">Web3 Multi Wallet Sender</h1>
+        <p class="splash-subtitle">BAG Community Tool</p>
+        <div class="splash-loader"></div>
+    </div>
+
+    <!-- Main App -->
+    <div id="mainApp" class="container hidden">
+        <header class="logo-container">
+            <img src="https://i.ibb.co/j9v2nvjT/new.png" alt="BAG Logo" class="logo" onerror="this.style.display='none'">
+            <h1 style="margin-top: 10px;">Multi Wallet Sender</h1>
+        </header>
+
+        <form id="walletForm">
+            <div class="form-group">
+                <label class="form-label">Private Key:</label>
+                <input type="password" id="privateKey" class="form-input" placeholder="Enter your private key">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Amount (ETH):</label>
+                <input type="number" id="amount" class="form-input" placeholder="Enter amount in ETH" step="0.001">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Select Network:</label>
+                <select id="network" class="dropdown">
+                    <option value="Base">Base</option>
+                    <option value="Ethereum">Ethereum</option>
+                    <option value="BNB Chain">BNB Chain</option>
+                </select>
+            </div>
+
+            <button type="button" class="btn btn-secondary" onclick="showAddNetworkDialog()">Add Custom Network</button>
+
+            <div class="form-group">
+                <label class="form-label">Recipient Addresses (one per line):</label>
+                <textarea id="addresses" class="form-input form-textarea" placeholder="Paste wallet addresses here, one per line"></textarea>
+            </div>
+
+            <input type="file" id="fileInput" accept=".txt" style="display: none;" onchange="loadAddressesFromFile()">
+            <button type="button" class="btn btn-neutral" onclick="document.getElementById('fileInput').click()">Load Addresses from .txt</button>
+
+            <button type="button" class="btn btn-primary" onclick="sendFunds()">
+                <span id="sendButtonText">Send Funds</span>
+                <span id="loadingText" class="loading">Sending...</span>
+            </button>
+        </form>
+
+        <div class="form-group">
+            <label class="form-label">Transaction Links:</label>
+            <div id="transactionOutput" class="output-container">
+                <div class="output-placeholder">Transaction links will appear here after sending funds</div>
+            </div>
+        </div>
+
+        <footer class="social-footer">
+            <div class="multilingual-text">
+                هذا البرنامج أحد الأدوات المستخدمة في المجتمع العربي الأكبر في الويب3 BAG<br>
+                This tool is part of the tools used in the largest Arabic Web3 community – BAG
+            </div>
+            
+            <div class="social-links">
+                <a href="https://bagguild.com/" class="social-link" target="_blank">
+                    <div class="social-icon">🌐</div>
+                    <div class="social-label">Website</div>
+                </a>
+                <a href="https://dapp.bagguild.com/" class="social-link" target="_blank">
+                    <div class="social-icon">💻</div>
+                    <div class="social-label">dApp</div>
+                </a>
+                <a href="https://discord.gg/bagguild" class="social-link" target="_blank">
+                    <div class="social-icon">💬</div>
+                    <div class="social-label">Discord</div>
+                </a>
+                <a href="https://twitter.com/BagGuild" class="social-link" target="_blank">
+                    <div class="social-icon">🐦</div>
+                    <div class="social-label">Twitter</div>
+                </a>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Networks configuration
+        const networks = {
+            'Base': {
+                rpc: 'https://mainnet.base.org',
+                chainId: 8453,
+                explorer: 'https://basescan.org/tx/'
+            },
+            'Ethereum': {
+                rpc: 'https://mainnet.infura.io/v3/YOUR_INFURA_KEY',
+                chainId: 1,
+                explorer: 'https://etherscan.io/tx/'
+            },
+            'BNB Chain': {
+                rpc: 'https://bsc-dataseed.binance.org/',
+                chainId: 56,
+                explorer: 'https://bscscan.com/tx/'
+            }
+        };
+
+        // Show splash screen and then main app
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                document.getElementById('splashScreen').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+            }, 2500);
+        });
+
+        // Generate random hex string
+        function generateRandomHex(length) {
+            const chars = '0123456789abcdef';
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
+        // Load addresses from file
+        function loadAddressesFromFile() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            
+            if (file && file.type === 'text/plain') {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const content = e.target.result;
+                    const addresses = content.split('\n')
+                        .map(line => line.trim())
+                        .filter(line => line.length > 0);
+                    
+                    document.getElementById('addresses').value = addresses.join('\n');
+                    alert(`Loaded ${addresses.length} addresses from file`);
+                };
+                reader.readAsText(file);
+            } else {
+                alert('Please select a valid .txt file');
+            }
+        }
+
+        // Show add network dialog
+        function showAddNetworkDialog() {
+            const name = prompt('Enter network name:');
+            if (!name) return;
+            
+            const rpc = prompt('Enter RPC URL:');
+            if (!rpc) return;
+            
+            const chainId = prompt('Enter Chain ID:');
+            if (!chainId || isNaN(chainId)) {
+                alert('Invalid Chain ID');
+                return;
+            }
+            
+            const explorer = prompt('Enter explorer URL (optional):') || '';
+            
+            // Add to networks
+            networks[name] = {
+                rpc: rpc,
+                chainId: parseInt(chainId),
+                explorer: explorer
+            };
+            
+            // Add to dropdown
+            const select = document.getElementById('network');
+            const option = document.createElement('option');
+            option.value = name;
+            option.textContent = name;
+            select.appendChild(option);
+            
+            alert(`Network "${name}" added successfully`);
+        }
+
+        // Send funds (simulated)
+        async function sendFunds() {
+            const privateKey = document.getElementById('privateKey').value.trim();
+            const amount = document.getElementById('amount').value.trim();
+            const networkName = document.getElementById('network').value;
+            const addressesText = document.getElementById('addresses').value.trim();
+            
+            // Validation
+            if (!privateKey) {
+                alert('Please enter your private key');
+                return;
+            }
+            
+            if (!amount || parseFloat(amount) <= 0) {
+                alert('Please enter a valid amount');
+                return;
+            }
+            
+            if (!addressesText) {
+                alert('Please enter recipient addresses');
+                return;
+            }
+            
+            const addresses = addressesText.split('\n')
+                .map(addr => addr.trim())
+                .filter(addr => addr.length > 0);
+            
+            if (addresses.length === 0) {
+                alert('No valid addresses found');
+                return;
+            }
+            
+            // Show loading state
+            const sendButton = document.querySelector('.btn-primary');
+            const sendButtonText = document.getElementById('sendButtonText');
+            const loadingText = document.getElementById('loadingText');
+            
+            sendButton.disabled = true;
+            sendButtonText.style.display = 'none';
+            loadingText.style.display = 'inline';
+            
+            // Clear previous results
+            const output = document.getElementById('transactionOutput');
+            output.innerHTML = '';
+            
+            try {
+                const network = networks[networkName];
+                
+                // Simulate transaction processing
+                for (let i = 0; i < addresses.length; i++) {
+                    // Simulate delay
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    // Generate dummy transaction hash
+                    const txHash = '0x' + generateRandomHex(64);
+                    const explorerLink = network.explorer + txHash;
+                    
+                    // Add to output
+                    const linkElement = document.createElement('a');
+                    linkElement.href = explorerLink;
+                    linkElement.target = '_blank';
+                    linkElement.className = 'tx-link';
+                    linkElement.textContent = explorerLink;
+                    output.appendChild(linkElement);
+                }
+                
+                alert(`Funds sent to ${addresses.length} addresses successfully!`);
+                
+            } catch (error) {
+                alert('Error sending funds: ' + error.message);
+            } finally {
+                // Reset button state
+                sendButton.disabled = false;
+                sendButtonText.style.display = 'inline';
+                loadingText.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
+
