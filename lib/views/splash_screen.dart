@@ -150,7 +150,7 @@ class _SplashScreenState extends State<SplashScreen>
 
                     // App title
                     Text(
-                      'Web3 Multi Wallet Sender',
+                      'Web3 Multi Wallet Sender | MWS DApp v1.0.0',
                       style:
                           Theme.of(context).textTheme.headlineMedium?.copyWith(
                                 color: AppTheme.whiteText,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:mws/app/views/wallet_connect/widgets/wallet_card.dart';
-import 'package:mws/widgets/custom_text_field.dart';
+import 'package:mws/app/widgets/wallet_card.dart';
+import 'package:mws/app/widgets/custom_text_field.dart';
 import 'package:mws/app/routes/app_routes.dart';
 import 'package:mws/app/theme/app_theme.dart';
 import 'package:mws/services/web3_service.dart';

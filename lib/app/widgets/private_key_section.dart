@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mws/app/controllers/wallet_connect_controller.dart';
 import 'package:mws/app/theme/app_theme.dart';
-import 'package:mws/app/views/widgets/glass_card.dart';
+import 'package:mws/app/widgets/glass_card.dart';
 
 class PrivateKeySection extends StatelessWidget {
   final WalletConnectController controller;

@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mws/app/controllers/multi_send_controller.dart';
-import 'package:mws/widgets/custom_text_field.dart';
 import '../../controllers/wallet_controller.dart';
+import 'package:mws/app/widgets/custom_text_field.dart';
  
-import '../components/network_dropdown.dart';
-import '../components/send_button.dart';
-import '../components/tx_output_list.dart';
-import '../components/social_links_bar.dart';
+import 'package:mws/app/widgets/network_dropdown.dart';
+import 'package:mws/app/widgets/send_button.dart';
+import 'package:mws/app/widgets/tx_output_list.dart';
+import 'package:mws/app/widgets/social_links_bar.dart';
+import 'package:mws/app/widgets/enhanced_button.dart';
 import '../../theme/app_theme.dart';
 
 class HomeView extends StatelessWidget {
@@ -23,18 +24,18 @@ class HomeView extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppTheme.primaryBackground,
       appBar: AppBar(
-        title: const Text('Multi Wallet Sender'),
+        title: const Text('MWS DApp'),
         backgroundColor: AppTheme.primaryBackground,
         elevation: 0,
         actions: [
           // Connect Wallet Button
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
-            child: ElevatedButton.icon(
-              onPressed: () => controller.connectWallet(),
+            child: EnhancedButton(
+              text: 'Connect Wallet',
               icon: const Icon(Icons.account_balance_wallet, color: Colors.white),
-              label: const Text('Connect Wallet', style: TextStyle(color: Colors.white)),
-              style: AppTheme.primaryButtonStyle,
+              onPressed: () => controller.connectWallet(),
+              isPrimary: true,
             ),
           ),
         ],
@@ -55,37 +56,37 @@ class HomeView extends StatelessWidget {
                   children: [
                     // Logo
                     Container(
-                      width: 100,
-                      height: 100,
-                      margin: const EdgeInsets.only(bottom: 24),
+                      width: 120,
+                      height: 120,
+                      margin: const EdgeInsets.only(bottom: 16),
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
-                            blurRadius: 10,
-                            offset: const Offset(0, 5),
+                            color: Colors.black.withOpacity(0.3),
+                            blurRadius: 15,
+                            offset: const Offset(0, 8),
                           ),
                         ],
                       ),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Image.network(
-                          'https://i.ibb.co/j9v2nvjT/new.png',
-                          width: 100,
-                          height: 100,
+                        borderRadius: BorderRadius.circular(16),
+                        child: Image.asset(
+                          'assets/images/logo.png',
+                          width: 120,
+                          height: 120,
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             return Container(
-                              width: 100,
-                              height: 100,
+                              width: 120,
+                              height: 120,
                               decoration: BoxDecoration(
                                 color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(16),
                               ),
                               child: const Icon(
                                 Icons.image_not_supported,
-                                size: 40,
+                                size: 50,
                                 color: Colors.grey,
                               ),
                             );
@@ -93,6 +94,18 @@ class HomeView extends StatelessWidget {
                         ),
                       ),
                     ),
+
+                    // Title
+                    Text(
+                      'Multi Wallet Sender',
+                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                            color: AppTheme.whiteText,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'Montserrat',
+                          ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 32),
 
                     // Private Key Input
                     CustomTextField(
@@ -121,10 +134,10 @@ class HomeView extends StatelessWidget {
                     // Add Custom Network Button
                     SizedBox(
                       width: double.infinity,
-                      child: ElevatedButton(
+                      child: EnhancedButton(
+                        text: 'Add Custom Network',
                         onPressed: () => controller.showAddNetworkDialog(),
-                        style: AppTheme.secondaryButtonStyle,
-                        child: const Text('Add Custom Network'),
+                        isPrimary: false,
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -142,10 +155,11 @@ class HomeView extends StatelessWidget {
                     // Load Addresses from File Button
                     SizedBox(
                       width: double.infinity,
-                      child: ElevatedButton(
+                      child: EnhancedButton(
+                        text: 'Load Addresses from .txt',
                         onPressed: () => controller.loadAddressesFromFile(),
-                        style: AppTheme.neutralButtonStyle,
-                        child: const Text('Load Addresses from .txt'),
+                        isPrimary: false,
+                        icon: const Icon(Icons.file_upload, color: AppTheme.primaryAccent),
                       ),
                     ),
                     const SizedBox(height: 24),

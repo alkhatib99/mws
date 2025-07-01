@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../controllers/wallet_controller.dart';
-import '../widgets/custom_text_field.dart';
-import '../widgets/network_dropdown.dart';
-import '../widgets/send_button.dart';
-import '../widgets/tx_output_list.dart';
-import '../widgets/social_links_bar.dart';
+import 'package:mws/app/controllers/multi_send_controller.dart';
+import 'package:mws/app/controllers/wallet_controller.dart';
+ import '../app/widgets/custom_text_field.dart';
+import '../app/widgets/network_dropdown.dart';
+import '../app/widgets/send_button.dart';
+import '../app/widgets/tx_output_list.dart';
+import '../app/widgets/social_links_bar.dart';
 import '../themes/app_theme.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -14,6 +15,8 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final WalletController controller = Get.find();
+    final MultiSendController multiSendController =
+        Get.find<MultiSendController>();
 
     return Scaffold(
       backgroundColor: AppTheme.primaryBackground,
@@ -27,7 +30,7 @@ class HomeScreen extends StatelessWidget {
           // Responsive design
           final isWideScreen = constraints.maxWidth > 800;
           final contentWidth = isWideScreen ? 720.0 : constraints.maxWidth;
-          
+
           return Center(
             child: Container(
               width: contentWidth,
@@ -98,7 +101,9 @@ class HomeScreen extends StatelessWidget {
                     const SizedBox(height: 16),
 
                     // Network Dropdown
-                    const NetworkDropdown(),
+                    NetworkDropdown(
+                      controller: multiSendController,
+                    ),
                     const SizedBox(height: 16),
 
                     // Add Custom Network Button
@@ -134,7 +139,7 @@ class HomeScreen extends StatelessWidget {
                     const SizedBox(height: 24),
 
                     // Send Button
-                    const SendButton(),
+                    SendButton(controller: Get.find<MultiSendController>()),
                     const SizedBox(height: 24),
 
                     // Transaction Output
@@ -154,4 +159,3 @@ class HomeScreen extends StatelessWidget {
     );
   }
 }
-

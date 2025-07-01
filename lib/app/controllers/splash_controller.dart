@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../routes/app_routes.dart';
+import 'package:mws/app/routes/app_routes.dart';
 
 class SplashController extends GetxController {
   final RxDouble logoOpacity = 0.0.obs;
@@ -30,7 +30,7 @@ class SplashController extends GetxController {
     subtitleOffset.value = Offset.zero;
     subtitleOpacity.value = 1.0;
 
-    await Future.delayed(const Duration(seconds: 2));
+    await Future.delayed(const Duration(seconds: 4));
     Get.offNamed(Routes.walletConnect);
   }
 }

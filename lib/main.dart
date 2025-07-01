@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:url_strategy/url_strategy.dart';
+// import 'package:url_strategy/url_strategy.dart';
 import 'package:mws/app/routes/app_pages.dart'; // Keep this import
 import 'package:mws/app/theme/app_theme.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  setPathUrlStrategy();
+  // setPathUrlStrategy();
   runApp(const MyApp());
 }
 
@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      title: "Web3 Multi Wallet Sender",
+      title: "MWS DApp - BAG Community Tool",
       initialRoute: AppPages.INITIAL,
       getPages: AppPages.routes,
       theme: AppTheme.darkTheme,

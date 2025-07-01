@@ -56,7 +56,7 @@ class SplashView extends StatelessWidget {
                   opacity: controller.titleOpacity.value,
                   duration: const Duration(seconds: 1),
                   child: Text(
-                    'Web3 Multi Wallet Sender',
+                    'MWS DApp',
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                           color: AppTheme.whiteText,
                           fontWeight: FontWeight.bold,

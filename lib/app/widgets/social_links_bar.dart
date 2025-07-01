@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../theme/app_theme.dart';
+import '../theme/app_theme.dart';
 
 class SocialLinksBar extends StatelessWidget {
   const SocialLinksBar({super.key});

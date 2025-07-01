@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mws/app/controllers/wallet_connect_controller.dart';
 import 'package:mws/app/theme/app_theme.dart';
-import 'package:mws/app/views/widgets/animated_logo.dart';
-import 'package:mws/app/views/widgets/glass_card.dart';
-import 'package:mws/app/views/widgets/responsive_text.dart';
-import 'package:mws/app/views/widgets/responsive_grid.dart';
-import 'package:mws/app/views/wallet_connect/widgets/wallet_card.dart';
-import 'package:mws/app/views/wallet_connect/widgets/private_key_section.dart';
+import 'package:mws/app/widgets/animated_logo.dart';
+import 'package:mws/app/widgets/glass_card.dart';
+import 'package:mws/app/widgets/responsive_text.dart';
+import 'package:mws/app/widgets/responsive_grid.dart';
+import 'package:mws/app/widgets/wallet_card.dart';
+import 'package:mws/app/widgets/private_key_section.dart';
 import 'package:mws/utils/constants.dart';
 import 'package:collection/collection.dart';
 
@@ -74,7 +74,7 @@ class WalletConnectView extends StatelessWidget {
       children: [
         AnimatedLogo(
           size: controller.logoSize,
-          title: 'Multi Wallet Sender',
+          title: 'MWS DApp',
         ),
         SizedBox(height: controller.verticalSpacing),
         ResponsiveTitle(

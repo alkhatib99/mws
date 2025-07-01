@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mws/app/controllers/multi_send_controller.dart';
 import 'package:mws/app/theme/app_theme.dart';
-import 'package:mws/app/views/components/address_input.dart';
-import 'package:mws/app/views/components/network_dropdown.dart';
-import 'package:mws/app/views/components/send_button.dart';
-import 'package:mws/app/views/components/social_links.dart';
-import 'package:mws/app/views/components/transaction_output.dart';
+import 'package:mws/app/widgets/address_input.dart';
+import 'package:mws/app/widgets/network_dropdown.dart';
+import 'package:mws/app/widgets/send_button.dart';
+import 'package:mws/app/widgets/social_links.dart';
+import 'package:mws/app/widgets/transaction_output.dart';
 import 'package:mws/utils/constants.dart';
-import 'package:mws/widgets/custom_text_field.dart';
+import 'package:mws/app/widgets/custom_text_field.dart';
 
 class MultiSendView extends StatelessWidget {
   const MultiSendView({super.key});

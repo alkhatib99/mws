@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../themes/app_theme.dart';
+import 'package:mws/app/theme/app_theme.dart';
 
 class CustomTextField extends StatelessWidget {
   final String label;
@@ -37,6 +37,7 @@ class CustomTextField extends StatelessWidget {
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
               color: AppTheme.whiteText,
               fontWeight: FontWeight.bold,
+              fontFamily: 'Montserrat',
             ),
           ),
         ),
@@ -48,36 +49,36 @@ class CustomTextField extends StatelessWidget {
           onChanged: onChanged,
           validator: validator,
           style: const TextStyle(
-            color: Colors.black,
+            color: AppTheme.whiteText,
             fontSize: 14,
-            fontFamily: 'Arial',
+            fontFamily: 'Montserrat',
           ),
           decoration: InputDecoration(
             hintText: hint,
             suffixIcon: suffixIcon,
             filled: true,
-            fillColor: AppTheme.primaryBackground,
+            fillColor: AppTheme.textFieldBackground,
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: AppTheme.secondaryBackground, width: 2),
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppTheme.primaryAccent, width: 2),
             ),
             errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Colors.red, width: 2),
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppTheme.warningRed, width: 2),
             ),
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             hintStyle: const TextStyle(
-              color: Colors.grey,
+              color: AppTheme.lightGrayText,
               fontSize: 14,
-              fontFamily: 'Arial',
+              fontFamily: 'Montserrat',
             ),
           ),
         ),

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mws/app/controllers/multi_send_controller.dart';
 import 'package:mws/app/theme/app_theme.dart';
-import 'package:mws/widgets/custom_text_field.dart';
- 
+import 'package:mws/app/widgets/custom_text_field.dart';
+
 class AddressInput extends StatelessWidget {
   final MultiSendController controller;
 

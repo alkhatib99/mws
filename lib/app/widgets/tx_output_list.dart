@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../controllers/wallet_controller.dart';
-import '../../theme/app_theme.dart';
+import '../controllers/wallet_controller.dart';
+import '../theme/app_theme.dart';
 
 class TxOutputList extends StatelessWidget {
   const TxOutputList({super.key});
