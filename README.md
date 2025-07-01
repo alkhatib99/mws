@@ -1,4 +1,3 @@
-
 # 🚀 Multi Wallet Sender (MWS) - Decentralized Application
 
 A professional-grade **decentralized application (DApp)** for connecting cryptocurrency wallets and sending crypto to multiple addresses simultaneously. Built with Flutter Web and designed with inspiration from [bagguild.com](https://bagguild.com) and [dapp.bagguild.com](https://dapp.bagguild.com).
@@ -307,43 +306,29 @@ This application is part of the tools used in the largest Arabic Web3 community 
 - **Website**: [alkhatibcrypto.xyz](https://alkhatibcrypto.xyz)
 - **Community**: BAG Guild
 
-## 🔮 Roadmap
-
-### Phase 1: Core Functionality ✅
-
-- [X] Wallet connection interface
-- [X] MetaMask integration
-- [X] Responsive design
-- [X] Private key import
-
-### Phase 2: Multi-Send (In Progress)
-
-- [ ] Multi-address transaction interface
-- [ ] CSV import for bulk addresses
-- [ ] Transaction preview and confirmation
-- [ ] Gas optimization
-
-### Phase 3: Advanced Features
-
-- [ ] Real WalletConnect v2 integration
-- [ ] Hardware wallet support (Ledger)
-- [ ] Multi-chain support
-- [ ] Transaction history
-
-### Phase 4: Enhanced UX
-
-- [ ] Dark/light theme toggle
-- [ ] Advanced settings panel
-- [ ] Analytics dashboard
-- [ ] Mobile app version
-
----
-
 ## 📦 Latest Release
 
-**Version:** [v1.0.0](https://github.com/alkhatib99/mws/releases/tag/v1.0.0)  
-Released on: July 1, 2025  
-Includes MetaMask support, private key import, Web3 integration, Arabic UI, and full RTL layout.
+### Version 1.1.0 - Real-Time Balances & Session Management
 
+**Released on:** July 1, 2025
+
+**Key Features:**
+
+- **Real-Time Balance Fetching**: All mock balance data replaced with live blockchain queries for native and ERC20 tokens across multiple networks (Base, Ethereum, BNB Chain), including USD value integration.
+- **MAX Button Fix**: The 'MAX' button now correctly populates the amount input with precise numeric values.
+- **Automatic Wallet Disconnection**: Implemented robust session management with a 10-minute inactivity timeout and browser/tab close detection for enhanced security.
+- **Session Status Widget**: A new visual indicator displays remaining session time, warns of expiration, and allows for session extension.
+- **Improved Address Validation**: Enhanced address input validation using `BalanceService` for greater accuracy.
+
+### Version 1.0.0 - Initial Release
+
+**Released on:** July 1, 2025
+
+**Key Features:**
+
+- **Wallet Connection**: Supports MetaMask, WalletConnect, and Private Key Import.
+- **Responsive UI**: Optimized for desktop, tablet, and mobile devices with a modern glassmorphism design.
+- **Core Web3 Integration**: Basic blockchain interactions and wallet communications.
+- **Bilingual Support**: Arabic and English UI with full RTL layout.
 
 **Built with ❤️ for the Arabic Web3 Community**

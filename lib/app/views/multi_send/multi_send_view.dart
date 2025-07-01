@@ -9,6 +9,7 @@ import 'package:mws/widgets/conditional_amount_input.dart';
 import 'package:mws/widgets/send_button.dart';
 import 'package:mws/widgets/social_links.dart';
 import 'package:mws/widgets/transaction_output.dart';
+import 'package:mws/widgets/session_status_widget.dart';
 import 'package:mws/utils/constants.dart';
 
 class MultiSendView extends StatelessWidget {
@@ -63,6 +64,12 @@ class MultiSendView extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    // Session Status Widget
+                    const Align(
+                      alignment: Alignment.topRight,
+                      child: SessionStatusWidget(),
+                    ),
+                    
                     // Logo
                     Container(
                       width: 100,

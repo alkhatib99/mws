@@ -6,6 +6,8 @@ import 'package:mws/widgets/custom_text_field.dart';
 import 'package:mws/app/routes/app_routes.dart';
 import 'package:mws/app/theme/app_theme.dart';
 import 'package:mws/services/web3_service.dart';
+import 'package:mws/services/session_service.dart';
+import 'package:mws/services/balance_service.dart';
 
 class WalletConnectController extends GetxController
     with GetSingleTickerProviderStateMixin {
@@ -14,6 +16,9 @@ class WalletConnectController extends GetxController
 
   // Web3 Service
   final Web3Service _web3Service = Web3Service();
+  
+  // Session Service
+  final SessionService _sessionService = Get.find<SessionService>();
 
   // Animation controllers
   late AnimationController fadeController;
@@ -362,6 +367,9 @@ class WalletConnectController extends GetxController
       }
 
       if (success) {
+        // Start session with connected wallet
+        _sessionService.startSession(walletName, connectedAddress.value);
+        
         _showSnackbar('Success', 'Connected to $walletName!');
         // Navigate to multi-send after successful connection
         Future.delayed(const Duration(milliseconds: 500), () {
@@ -387,6 +395,9 @@ class WalletConnectController extends GetxController
     connectedAddress.value = '0x${_generateRandomHex(40)}';
     walletBalance.value =
         2.3 + (DateTime.now().millisecondsSinceEpoch % 150) / 100;
+
+    // Start session with connected wallet
+    _sessionService.startSession(walletName, connectedAddress.value);
 
     _showSnackbar('Success',
         'Connected via WalletConnect! Please check your $walletName app.');
@@ -438,7 +449,9 @@ class WalletConnectController extends GetxController
       if (balance != null) {
         walletBalance.value = balance.getInEther.toDouble();
       }
-      // Navigate to MultiSend with the connected address
+      
+      // Start session with imported wallet
+      _sessionService.startSession('Private Key Import', address);
 
       _showSnackbar('Success', 'Wallet imported successfully!');
 

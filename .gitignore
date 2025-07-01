@@ -6,6 +6,11 @@
 .DS_Store
 .atom/
 # .build/
+.v1.1.0/
+v1.1.0/
+
+# Build directories
+ReleaseNotes.md
 .buildlog/
 .history
 .svn/

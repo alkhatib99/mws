@@ -1,4 +1,3 @@
-
 # MWS DApp Release Notes - v1.0.0
 
 ## Release Date: July 1, 2025
@@ -70,5 +69,42 @@ Welcome to the inaugural release of the Multi Wallet Sender (MWS) DApp! This ver
 ### 🤝 Contributions
 
 We appreciate your continued support and feedback in making MWS DApp a better tool for multi-wallet transactions. Please report any issues or suggestions on our GitHub repository.
+
+
+
+
+# MWS DApp Release Notes - v1.1.0
+
+## ✨ New Features & Enhancements
+
+- **Real-Time Balance Fetching**: Implemented comprehensive balance fetching from blockchain networks (Base, Ethereum, BNB Chain) for native tokens and ERC20 tokens. All mock balance data has been replaced with real-time queries.
+- **MAX Button Fix**: The 'MAX' button in the amount input now correctly populates the field with the actual numeric balance, resolving the previous issue of it inserting a string.
+- **Automatic Wallet Disconnection**: Introduced a robust session management system that automatically disconnects the wallet after 10 minutes of inactivity or when the browser/tab is closed.
+- **Session Status Widget**: Added a visual indicator showing the remaining session time, with warnings for expiring sessions and an option to extend the session.
+- **Enhanced Security**: Implemented shorter timeouts when the page is hidden and immediate disconnection on browser close for improved security.
+- **Improved Address Validation**: The address input now uses `BalanceService` for more robust and accurate Ethereum address validation.
+
+## 🐛 Bug Fixes
+
+- Corrected the `BigInt` division issue in `BalanceService` to ensure accurate token balance calculations.
+
+## 🛠️ Technical Improvements
+
+- **New Services**: Introduced `BalanceService` for blockchain interactions and `SessionService` for comprehensive session management.
+- **Updated Controllers**: `MultiSendController` and `WalletConnectController` have been updated to integrate with the new balance and session services.
+- **New Widgets**: `SessionStatusWidget` has been added to provide clear session feedback to the user.
+
+## 🚀 Performance Optimizations
+
+- Optimized balance fetching and price data calls for better performance.
+- Improved memory management for session timers.
+
+## 🎨 UI/UX Improvements
+
+- Enhanced user experience with real-time balance displays and USD values.
+- Clear visual cues for session status and warnings.
+- More intuitive and secure workflow for amount input and wallet management.
+
+---
 
 ---

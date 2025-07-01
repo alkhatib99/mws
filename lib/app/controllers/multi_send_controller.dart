@@ -6,7 +6,10 @@ import 'dart:math';
 import '../data/models/network_model.dart';
 import '../data/models/token_model.dart';
 import '../data/models/transaction_model.dart';
-import 'package:mws/app/controllers/wallet_connect_controller.dart'; // Import WalletConnectController
+import 'package:mws/app/controllers/wallet_connect_controller.dart';
+import 'package:mws/services/balance_service.dart';
+import 'package:mws/services/session_service.dart';
+import 'package:mws/services/price_service.dart';
 
 class MultiSendController extends GetxController {
   final TextEditingController amountController = TextEditingController();
@@ -17,6 +20,7 @@ class MultiSendController extends GetxController {
   final RxString selectedNetwork = 'Base'.obs;
   final Rx<Token?> selectedToken = Rx<Token?>(null);
   final RxBool isLoading = false.obs;
+  final RxBool isLoadingBalances = false.obs;
   final RxList<Transaction> transactionLinks = <Transaction>[].obs;
   
   // Balance management
@@ -28,6 +32,10 @@ class MultiSendController extends GetxController {
   final RxBool isTokenSelected = false.obs;
   final RxBool areAddressesValid = false.obs;
   final RxBool isAmountValid = false.obs;
+
+  // Services
+  final SessionService _sessionService = Get.find<SessionService>();
+  final PriceService _priceService = PriceService();
 
   final RxMap<String, Network> networks = <String, Network>{
     'Base': Network(
@@ -176,45 +184,54 @@ class MultiSendController extends GetxController {
     _updateAmountValidation();
   }
   
-  void _loadTokenBalances() {
+  void _loadTokenBalances() async {
     final network = networks[selectedNetwork.value];
     if (network == null) return;
     
-    // Simulate loading balances - in real app, this would call Web3 service
+    // Get connected wallet address
+    final walletAddress = _sessionService.connectedAddress.value;
+    if (walletAddress.isEmpty) {
+      print('No wallet connected');
+      return;
+    }
+    
+    isLoadingBalances.value = true;
     tokenBalances.clear();
     tokenUsdValues.clear();
     
-    for (final token in network.supportedTokens) {
-      // Mock balance data
-      switch (token.symbol) {
-        case 'ETH':
-          tokenBalances[token.symbol] = '2.5431';
-          tokenUsdValues[token.symbol] = '8,234.56';
-          break;
-        case 'USDC':
-          tokenBalances[token.symbol] = '1,250.00';
-          tokenUsdValues[token.symbol] = '1,250.00';
-          break;
-        case 'USDT':
-          tokenBalances[token.symbol] = '500.00';
-          tokenUsdValues[token.symbol] = '500.00';
-          break;
-        case 'DAI':
-          tokenBalances[token.symbol] = '750.25';
-          tokenUsdValues[token.symbol] = '750.25';
-          break;
-        case 'BNB':
-          tokenBalances[token.symbol] = '5.2341';
-          tokenUsdValues[token.symbol] = '2,156.78';
-          break;
-        case 'CAKE':
-          tokenBalances[token.symbol] = '125.50';
-          tokenUsdValues[token.symbol] = '234.12';
-          break;
-        default:
-          tokenBalances[token.symbol] = '0.0';
+    try {
+      // Fetch real balances from blockchain
+      final balances = await BalanceService.getAllTokenBalances(
+        walletAddress,
+        selectedNetwork.value,
+        network.supportedTokens,
+      );
+      
+      // Get USD prices for tokens
+      for (final token in network.supportedTokens) {
+        final balance = balances[token.symbol] ?? 0.0;
+        final formattedBalance = BalanceService.formatBalance(balance);
+        tokenBalances[token.symbol] = formattedBalance;
+        
+        // Get USD value
+        try {
+          final usdPrice = await PriceService.getTokenPrice(token.symbol);
+          final usdValue = balance * usdPrice;
+          tokenUsdValues[token.symbol] = BalanceService.formatBalance(usdValue, decimals: 2);
+        } catch (e) {
+          print('Error fetching price for ${token.symbol}: $e');
           tokenUsdValues[token.symbol] = '0.00';
+        }
       }
+    } catch (e) {
+      print('Error loading token balances: $e');
+      // Fallback to zero balances
+      for (final token in network.supportedTokens) {
+        tokenBalances[token.symbol] = '0.0';
+        tokenUsdValues[token.symbol] = '0.00';
+      }
+    } finally {
+      isLoadingBalances.value = false;
     }
   }
   
@@ -231,9 +248,9 @@ class MultiSendController extends GetxController {
         .where((addr) => addr.isNotEmpty)
         .toList();
     
-    // Basic validation - check if addresses look like valid Ethereum addresses
+    // Use BalanceService for proper address validation
     bool allValid = addressList.every((addr) => 
-        addr.length == 42 && addr.startsWith('0x'));
+        BalanceService.isValidAddress(addr));
     
     areAddressesValid.value = allValid && addressList.isNotEmpty;
     addresses.value = addressText;

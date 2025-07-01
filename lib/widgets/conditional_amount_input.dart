@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../app/controllers/multi_send_controller.dart';
-import '../../app/theme/app_theme.dart';
+import '../../../app/controllers/multi_send_controller.dart';
+import '../../../app/theme/app_theme.dart';
 
 class ConditionalAmountInput extends StatelessWidget {
   final MultiSendController controller;
@@ -176,12 +176,16 @@ class ConditionalAmountInput extends StatelessWidget {
                             
                             // MAX Button
                             Obx(() {
-                              final balance = controller.tokenBalances[selectedToken.symbol] ?? '0.0';
+                              final balanceString = controller.tokenBalances[selectedToken.symbol] ?? '0.0';
+                              // Parse the balance string to get the actual double value
+                              final balanceDouble = double.tryParse(balanceString.replaceAll(',', '')) ?? 0.0;
                               
                               return ElevatedButton(
                                 onPressed: () {
-                                  controller.amountController.text = balance;
-                                  controller.amount.value = balance;
+                                  // Set the amount as a clean double value without commas
+                                  final cleanBalance = balanceDouble.toString();
+                                  controller.amountController.text = cleanBalance;
+                                  controller.amount.value = cleanBalance;
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppTheme.primaryAccent,
