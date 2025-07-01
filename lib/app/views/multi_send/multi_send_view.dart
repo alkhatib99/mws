@@ -22,32 +22,32 @@ class MultiSendView extends StatelessWidget {
       backgroundColor: AppTheme.primaryBackground,
       appBar: AppBar(
         title: const Text(
-          'Multi Wallet Sender',
+          'BAG Multi Wallet Sender DApp',
           style:
               TextStyle(fontFamily: 'Montserrat'), // Ensure Montserrat is used
         ),
         backgroundColor: AppTheme.primaryBackground,
         elevation: 0,
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: ElevatedButton.icon(
-              onPressed: () {
-                Get.snackbar(
-                  'Coming Soon',
-                  'Wallet connection will be implemented here.',
-                  snackPosition: SnackPosition.BOTTOM,
-                  backgroundColor: AppTheme.primaryAccent,
-                  colorText: Colors.white,
-                );
-              },
-              icon:
-                  const Icon(Icons.account_balance_wallet, color: Colors.white),
-              label: const Text('Connect Wallet',
-                  style: TextStyle(color: Colors.white)),
-              style: AppTheme.primaryButtonStyle, // Use new primaryButtonStyle
-            ),
-          ),
+          // Padding(
+          //   padding: const EdgeInsets.only(right: 16.0),
+          //   child: ElevatedButton.icon(
+          //     onPressed: () {
+          //       Get.snackbar(
+          //         'Coming Soon',
+          //         'Wallet connection will be implemented here.',
+          //         snackPosition: SnackPosition.BOTTOM,
+          //         backgroundColor: AppTheme.primaryAccent,
+          //         colorText: Colors.white,
+          //       );
+          //     },
+          //     icon:
+          //         const Icon(Icons.account_balance_wallet, color: Colors.white),
+          //     label: const Text('Connect Wallet',
+          //         style: TextStyle(color: Colors.white)),
+          //     style: AppTheme.primaryButtonStyle, // Use new primaryButtonStyle
+          //   ),
+          // ),
         ],
       ),
       body: LayoutBuilder(
@@ -124,7 +124,7 @@ class MultiSendView extends StatelessWidget {
                       if (!controller.isNetworkSelected.value) {
                         return const SizedBox.shrink();
                       }
-                      
+
                       return AnimatedContainer(
                         duration: const Duration(milliseconds: 300),
                         curve: Curves.easeInOut,
@@ -142,7 +142,7 @@ class MultiSendView extends StatelessWidget {
                       if (!controller.isTokenSelected.value) {
                         return const SizedBox.shrink();
                       }
-                      
+
                       return AnimatedContainer(
                         duration: const Duration(milliseconds: 300),
                         curve: Curves.easeInOut,
