@@ -4,11 +4,12 @@ import 'package:mws/app/controllers/multi_send_controller.dart';
 import 'package:mws/app/theme/app_theme.dart';
 import 'package:mws/widgets/address_input.dart';
 import 'package:mws/widgets/network_dropdown.dart';
+import 'package:mws/widgets/token_dropdown.dart';
+import 'package:mws/widgets/conditional_amount_input.dart';
 import 'package:mws/widgets/send_button.dart';
 import 'package:mws/widgets/social_links.dart';
 import 'package:mws/widgets/transaction_output.dart';
 import 'package:mws/utils/constants.dart';
-import 'package:mws/widgets/custom_text_field.dart';
 
 class MultiSendView extends StatelessWidget {
   const MultiSendView({super.key});
@@ -103,19 +104,7 @@ class MultiSendView extends StatelessWidget {
                       ),
                     ),
 
-                    // Amount Input
-
-                    CustomTextField(
-                      label: 'Amount (ETH):',
-                      hint: 'Enter amount in ETH',
-                      controller: controller.amountController,
-                      keyboardType: TextInputType.number,
-                      onChanged: (value) => controller.amount.value = value,
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Network Dropdown
+                    // Step 1: Network Selection
                     NetworkDropdown(controller: controller),
                     const SizedBox(height: 16),
 
@@ -124,18 +113,53 @@ class MultiSendView extends StatelessWidget {
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: () => controller.showAddNetworkDialog(),
-                        style: AppTheme
-                            .secondaryButtonStyle, // Use new secondaryButtonStyle
+                        style: AppTheme.secondaryButtonStyle,
                         child: const Text('Add Custom Network'),
                       ),
                     ),
                     const SizedBox(height: 24),
 
-                    // Addresses Input
-                    AddressInput(controller: controller),
+                    // Step 2: Token Selection (only show if network is selected)
+                    Obx(() {
+                      if (!controller.isNetworkSelected.value) {
+                        return const SizedBox.shrink();
+                      }
+                      
+                      return AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                        child: Column(
+                          children: [
+                            TokenDropdown(controller: controller),
+                            const SizedBox(height: 24),
+                          ],
+                        ),
+                      );
+                    }),
+
+                    // Step 3: Addresses Input (only show if token is selected)
+                    Obx(() {
+                      if (!controller.isTokenSelected.value) {
+                        return const SizedBox.shrink();
+                      }
+                      
+                      return AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                        child: Column(
+                          children: [
+                            AddressInput(controller: controller),
+                            const SizedBox(height: 16),
+                          ],
+                        ),
+                      );
+                    }),
+
+                    // Step 4: Amount Input (only show if addresses are valid)
+                    ConditionalAmountInput(controller: controller),
                     const SizedBox(height: 24),
 
-                    // Send Button
+                    // Step 5: Send Button (conditional)
                     SendButton(controller: controller),
                     const SizedBox(height: 24),
 

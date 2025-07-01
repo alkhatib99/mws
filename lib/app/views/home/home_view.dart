@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:mws/app/controllers/multi_send_controller.dart';
 import 'package:mws/widgets/custom_text_field.dart';
 import '../../controllers/wallet_controller.dart';
- 
+
 import 'package:mws/widgets/network_dropdown.dart';
 import 'package:mws/widgets/token_dropdown.dart';
 import 'package:mws/widgets/send_button.dart';
@@ -21,8 +21,10 @@ class HomeView extends StatelessWidget {
   Widget build(BuildContext context) {
     final WalletController controller = Get.find();
     final isWideScreen = MediaQuery.of(context).size.width > 800;
-    final contentWidth = isWideScreen ? 720.0 : MediaQuery.of(context).size.width;
-    final MultiSendController  multiSendController = Get.find<MultiSendController>();
+    final contentWidth =
+        isWideScreen ? 720.0 : MediaQuery.of(context).size.width;
+    final MultiSendController multiSendController =
+        Get.find<MultiSendController>();
 
     return Scaffold(
       backgroundColor: AppTheme.primaryBackground,
@@ -32,15 +34,16 @@ class HomeView extends StatelessWidget {
         elevation: 0,
         actions: [
           // Connect Wallet Button
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: EnhancedButton(
-              text: 'Connect Wallet',
-              icon: const Icon(Icons.account_balance_wallet, color: Colors.white),
-              onPressed: () => controller.connectWallet(),
-              isPrimary: true,
-            ),
-          ),
+          // Padding(
+          //   padding: const EdgeInsets.only(right: 16.0),
+          //   child: EnhancedButton(
+          //     text: 'Connect Wallet',
+          //     icon:
+          //         const Icon(Icons.account_balance_wallet, color: Colors.white),
+          //     onPressed: () => controller.connectWallet(),
+          //     isPrimary: true,
+          //   ),
+          // ),
         ],
       ),
       body: LayoutBuilder(
@@ -48,7 +51,7 @@ class HomeView extends StatelessWidget {
           // Responsive design
           final isWideScreen = constraints.maxWidth > 800;
           final contentWidth = isWideScreen ? 720.0 : constraints.maxWidth;
-          
+
           return Center(
             child: Container(
               width: contentWidth,
@@ -100,12 +103,13 @@ class HomeView extends StatelessWidget {
 
                     // Title
                     Text(
-                      'Multi Wallet Sender',
-                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                            color: AppTheme.whiteText,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Montserrat',
-                          ),
+                      'BAG MWS DApp',
+                      style:
+                          Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                color: AppTheme.whiteText,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Montserrat',
+                              ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 32),
@@ -119,7 +123,7 @@ class HomeView extends StatelessWidget {
                       onChanged: (value) => controller.privateKey.value = value,
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Balance Card
                     Obx(
                       () => BalanceCard(
@@ -132,42 +136,34 @@ class HomeView extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
 
-                    // Amount Input
-                    EnhancedAmountInput(controller: controller),
-                    const SizedBox(height: 16),
-
                     // Network Dropdown
                     NetworkDropdown(controller: multiSendController),
                     const SizedBox(height: 16),
 
                     // Token Dropdown
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Select Token:',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                color: AppTheme.whiteText,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: 'Montserrat',
-                              ),
-                        ),
-                        const SizedBox(height: 8),
-                        TokenDropdown(controller: controller),
-                      ],
+                    Obx(
+                      () => multiSendController.selectedNetwork.value != null
+                          ? Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Select Token:',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(
+                                        color: AppTheme.whiteText,
+                                        fontWeight: FontWeight.bold,
+                                        fontFamily: 'Montserrat',
+                                      ),
+                                ),
+                                const SizedBox(height: 8),
+                                TokenDropdown(controller: multiSendController),
+                              ],
+                            )
+                          : const SizedBox.shrink(),
                     ),
                     const SizedBox(height: 16),
-
-                    // Add Custom Network Button
-                    SizedBox(
-                      width: double.infinity,
-                      child: EnhancedButton(
-                        text: 'Add Custom Network',
-                        onPressed: () => controller.showAddNetworkDialog(),
-                        isPrimary: false,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
 
                     // Addresses Input
                     CustomTextField(
@@ -186,10 +182,26 @@ class HomeView extends StatelessWidget {
                         text: 'Load Addresses from .txt',
                         onPressed: () => controller.loadAddressesFromFile(),
                         isPrimary: false,
-                        icon: const Icon(Icons.file_upload, color: AppTheme.primaryAccent),
+                        icon: const Icon(Icons.file_upload,
+                            color: AppTheme.primaryAccent),
                       ),
                     ),
                     const SizedBox(height: 24),
+
+                    // Amount Input
+                    Obx(
+                      () => multiSendController.selectedNetwork.value != null &&
+                              controller.selectedToken.value != null &&
+                              controller.addresses.value
+                                  .isNotEmpty // Assuming addresses are validated elsewhere
+                          ? Column(
+                              children: [
+                                EnhancedAmountInput(controller: controller),
+                                const SizedBox(height: 16),
+                              ],
+                            )
+                          : const SizedBox.shrink(),
+                    ),
 
                     // Send Button
                     const SizedBox(height: 24),
@@ -211,5 +223,3 @@ class HomeView extends StatelessWidget {
     );
   }
 }
-
-

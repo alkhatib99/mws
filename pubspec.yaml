@@ -31,6 +31,8 @@ flutter:
   assets:
   - assets/
   - assets/images/
+  - assets/tokens/
+  - assets/networks/
   - assets/images/metamask_logo.png
   - assets/images/coinbase_logo.png
   - assets/images/trustwallet_logo.png

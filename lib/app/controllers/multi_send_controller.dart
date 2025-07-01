@@ -15,8 +15,19 @@ class MultiSendController extends GetxController {
   final RxString amount = ''.obs;
   final RxString addresses = ''.obs;
   final RxString selectedNetwork = 'Base'.obs;
+  final Rx<Token?> selectedToken = Rx<Token?>(null);
   final RxBool isLoading = false.obs;
   final RxList<Transaction> transactionLinks = <Transaction>[].obs;
+  
+  // Balance management
+  final RxMap<String, String> tokenBalances = <String, String>{}.obs;
+  final RxMap<String, String> tokenUsdValues = <String, String>{}.obs;
+  
+  // Form validation states
+  final RxBool isNetworkSelected = false.obs;
+  final RxBool isTokenSelected = false.obs;
+  final RxBool areAddressesValid = false.obs;
+  final RxBool isAmountValid = false.obs;
 
   final RxMap<String, Network> networks = <String, Network>{
     'Base': Network(
@@ -128,6 +139,14 @@ class MultiSendController extends GetxController {
   void onInit() {
     super.onInit();
     selectedNetwork.value = 'Base';
+    isNetworkSelected.value = true;
+    
+    // Listen to address changes for validation
+    addressesController.addListener(_validateAddresses);
+    amountController.addListener(_validateAmount);
+    
+    // Load initial token balances for Base network
+    _loadTokenBalances();
   }
 
   @override
@@ -139,6 +158,109 @@ class MultiSendController extends GetxController {
 
   void setSelectedNetwork(String network) {
     selectedNetwork.value = network;
+    isNetworkSelected.value = true;
+    
+    // Clear selected token when network changes
+    selectedToken.value = null;
+    isTokenSelected.value = false;
+    
+    // Load balances for new network
+    _loadTokenBalances();
+  }
+  
+  void setSelectedToken(Token token) {
+    selectedToken.value = token;
+    isTokenSelected.value = true;
+    
+    // Update amount label based on selected token
+    _updateAmountValidation();
+  }
+  
+  void _loadTokenBalances() {
+    final network = networks[selectedNetwork.value];
+    if (network == null) return;
+    
+    // Simulate loading balances - in real app, this would call Web3 service
+    tokenBalances.clear();
+    tokenUsdValues.clear();
+    
+    for (final token in network.supportedTokens) {
+      // Mock balance data
+      switch (token.symbol) {
+        case 'ETH':
+          tokenBalances[token.symbol] = '2.5431';
+          tokenUsdValues[token.symbol] = '8,234.56';
+          break;
+        case 'USDC':
+          tokenBalances[token.symbol] = '1,250.00';
+          tokenUsdValues[token.symbol] = '1,250.00';
+          break;
+        case 'USDT':
+          tokenBalances[token.symbol] = '500.00';
+          tokenUsdValues[token.symbol] = '500.00';
+          break;
+        case 'DAI':
+          tokenBalances[token.symbol] = '750.25';
+          tokenUsdValues[token.symbol] = '750.25';
+          break;
+        case 'BNB':
+          tokenBalances[token.symbol] = '5.2341';
+          tokenUsdValues[token.symbol] = '2,156.78';
+          break;
+        case 'CAKE':
+          tokenBalances[token.symbol] = '125.50';
+          tokenUsdValues[token.symbol] = '234.12';
+          break;
+        default:
+          tokenBalances[token.symbol] = '0.0';
+          tokenUsdValues[token.symbol] = '0.00';
+      }
+    }
+  }
+  
+  void _validateAddresses() {
+    final addressText = addressesController.text.trim();
+    if (addressText.isEmpty) {
+      areAddressesValid.value = false;
+      return;
+    }
+    
+    final addressList = addressText
+        .split('\n')
+        .map((addr) => addr.trim())
+        .where((addr) => addr.isNotEmpty)
+        .toList();
+    
+    // Basic validation - check if addresses look like valid Ethereum addresses
+    bool allValid = addressList.every((addr) => 
+        addr.length == 42 && addr.startsWith('0x'));
+    
+    areAddressesValid.value = allValid && addressList.isNotEmpty;
+    addresses.value = addressText;
+  }
+  
+  void _validateAmount() {
+    final amountText = amountController.text.trim();
+    if (amountText.isEmpty) {
+      isAmountValid.value = false;
+      return;
+    }
+    
+    final amountValue = double.tryParse(amountText);
+    isAmountValid.value = amountValue != null && amountValue > 0;
+    amount.value = amountText;
+  }
+  
+  void _updateAmountValidation() {
+    _validateAmount();
+  }
+  
+  // Computed property for send button state
+  bool get canSendFunds {
+    return isNetworkSelected.value && 
+           isTokenSelected.value && 
+           areAddressesValid.value && 
+           isAmountValid.value;
   }
 
   void addCustomNetwork(String name, String rpc, int chainId, String explorer) {
