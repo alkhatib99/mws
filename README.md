@@ -339,4 +339,11 @@ This application is part of the tools used in the largest Arabic Web3 community 
 
 ---
 
+## 📦 Latest Release
+
+**Version:** [v1.0.0](https://github.com/alkhatib99/mws/releases/tag/v1.0.0)  
+Released on: July 1, 2025  
+Includes MetaMask support, private key import, Web3 integration, Arabic UI, and full RTL layout.
+
+
 **Built with ❤️ for the Arabic Web3 Community**
