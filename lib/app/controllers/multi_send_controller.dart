@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'dart:convert';
 import 'dart:math';
 import '../data/models/network_model.dart';
+import '../data/models/token_model.dart';
 import '../data/models/transaction_model.dart';
 import 'package:mws/app/controllers/wallet_connect_controller.dart'; // Import WalletConnectController
 
@@ -23,18 +24,100 @@ class MultiSendController extends GetxController {
       rpcUrl: 'https://mainnet.base.org',
       chainId: 8453,
       explorerUrl: 'https://basescan.org/tx/',
+      currency: 'ETH',
+      logoPath: 'assets/networks/base.png',
+      supportedTokens: [
+        Token(
+          name: 'Ethereum',
+          symbol: 'ETH',
+          contractAddress: '',
+          decimals: 18,
+          logoPath: 'assets/tokens/eth.png',
+        ),
+        Token(
+          name: 'USD Coin',
+          symbol: 'USDC',
+          contractAddress: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+          decimals: 6,
+          logoPath: 'assets/tokens/usdc.png',
+        ),
+      ],
     ),
     'Ethereum': Network(
       name: 'Ethereum',
       rpcUrl: 'https://mainnet.infura.io/v3/YOUR_INFURA_KEY',
       chainId: 1,
       explorerUrl: 'https://etherscan.io/tx/',
+      currency: 'ETH',
+      logoPath: 'assets/networks/ethereum.png',
+      supportedTokens: [
+        Token(
+          name: 'Ethereum',
+          symbol: 'ETH',
+          contractAddress: '',
+          decimals: 18,
+          logoPath: 'assets/tokens/eth.png',
+        ),
+        Token(
+          name: 'USD Coin',
+          symbol: 'USDC',
+          contractAddress: '0xA0b86a33E6441b8435b662c8b0b0e6b2b5b5b5b5',
+          decimals: 6,
+          logoPath: 'assets/tokens/usdc.png',
+        ),
+        Token(
+          name: 'Tether USD',
+          symbol: 'USDT',
+          contractAddress: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+          decimals: 6,
+          logoPath: 'assets/tokens/usdt.png',
+        ),
+        Token(
+          name: 'Dai Stablecoin',
+          symbol: 'DAI',
+          contractAddress: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+          decimals: 18,
+          logoPath: 'assets/tokens/dai.png',
+        ),
+      ],
     ),
     'BNB Chain': Network(
       name: 'BNB Chain',
       rpcUrl: 'https://bsc-dataseed.binance.org/',
       chainId: 56,
       explorerUrl: 'https://bscscan.com/tx/',
+      currency: 'BNB',
+      logoPath: 'assets/networks/bnb.png',
+      supportedTokens: [
+        Token(
+          name: 'BNB',
+          symbol: 'BNB',
+          contractAddress: '',
+          decimals: 18,
+          logoPath: 'assets/tokens/bnb.png',
+        ),
+        Token(
+          name: 'USD Coin',
+          symbol: 'USDC',
+          contractAddress: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
+          decimals: 18,
+          logoPath: 'assets/tokens/usdc.png',
+        ),
+        Token(
+          name: 'Tether USD',
+          symbol: 'USDT',
+          contractAddress: '0x55d398326f99059fF775485246999027B3197955',
+          decimals: 18,
+          logoPath: 'assets/tokens/usdt.png',
+        ),
+        Token(
+          name: 'PancakeSwap Token',
+          symbol: 'CAKE',
+          contractAddress: '0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82',
+          decimals: 18,
+          logoPath: 'assets/tokens/cake.png',
+        ),
+      ],
     ),
   }.obs;
 
@@ -64,6 +147,9 @@ class MultiSendController extends GetxController {
       rpcUrl: rpc,
       chainId: chainId,
       explorerUrl: explorer,
+      currency: 'ETH', // Default currency
+      logoPath: 'assets/networks/custom.png', // Default logo
+      supportedTokens: [], // Empty tokens list for custom networks
     );
     Get.snackbar(
       'Success',

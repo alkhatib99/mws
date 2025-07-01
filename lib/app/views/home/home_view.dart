@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mws/app/controllers/multi_send_controller.dart';
+import 'package:mws/widgets/custom_text_field.dart';
 import '../../controllers/wallet_controller.dart';
-import 'package:mws/app/widgets/custom_text_field.dart';
  
-import 'package:mws/app/widgets/network_dropdown.dart';
-import 'package:mws/app/widgets/send_button.dart';
-import 'package:mws/app/widgets/tx_output_list.dart';
-import 'package:mws/app/widgets/social_links_bar.dart';
-import 'package:mws/app/widgets/enhanced_button.dart';
+import 'package:mws/widgets/network_dropdown.dart';
+import 'package:mws/widgets/token_dropdown.dart';
+import 'package:mws/widgets/send_button.dart';
+import 'package:mws/widgets/tx_output_list.dart';
+import 'package:mws/widgets/social_links_bar.dart';
+import 'package:mws/widgets/enhanced_button.dart';
+import 'package:mws/widgets/balance_card.dart';
+import 'package:mws/widgets/enhanced_amount_input.dart';
 import '../../theme/app_theme.dart';
 
 class HomeView extends StatelessWidget {
@@ -24,7 +27,7 @@ class HomeView extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppTheme.primaryBackground,
       appBar: AppBar(
-        title: const Text('MWS DApp'),
+        title: const Text('BAG MWS DApp'),
         backgroundColor: AppTheme.primaryBackground,
         elevation: 0,
         actions: [
@@ -116,19 +119,43 @@ class HomeView extends StatelessWidget {
                       onChanged: (value) => controller.privateKey.value = value,
                     ),
                     const SizedBox(height: 16),
-
-                    // Amount Input
-                    CustomTextField(
-                      label: 'Amount (ETH):',
-                      hint: 'Enter amount in ETH',
-                      controller: controller.amountController,
-                      keyboardType: TextInputType.number,
-                      onChanged: (value) => controller.amount.value = value,
+                    
+                    // Balance Card
+                    Obx(
+                      () => BalanceCard(
+                        balance: controller.balance.value,
+                        symbol: controller.selectedToken.value?.symbol ?? '',
+                        tokenName: controller.selectedToken.value?.name,
+                        logoPath: controller.selectedToken.value?.logoPath,
+                        usdValue: controller.balanceUSD.value,
+                      ),
                     ),
                     const SizedBox(height: 16),
 
-                    // Netw,,ork Dropdown
-                        NetworkDropdown(controller: multiSendController),
+                    // Amount Input
+                    EnhancedAmountInput(controller: controller),
+                    const SizedBox(height: 16),
+
+                    // Network Dropdown
+                    NetworkDropdown(controller: multiSendController),
+                    const SizedBox(height: 16),
+
+                    // Token Dropdown
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Select Token:',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                color: AppTheme.whiteText,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Montserrat',
+                              ),
+                        ),
+                        const SizedBox(height: 8),
+                        TokenDropdown(controller: controller),
+                      ],
+                    ),
                     const SizedBox(height: 16),
 
                     // Add Custom Network Button

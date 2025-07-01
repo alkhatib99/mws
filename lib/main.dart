@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-// import 'package:url_strategy/url_strategy.dart';
+ // import 'package:url_strategy/url_strategy.dart';
 import 'package:mws/app/routes/app_pages.dart'; // Keep this import
 import 'package:mws/app/theme/app_theme.dart';
+import 'package:mws/utils/constants.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,7 +17,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      title: "MWS DApp - BAG Community Tool",
+      title: AppConstants.appTitle,
       initialRoute: AppPages.INITIAL,
       getPages: AppPages.routes,
       theme: AppTheme.darkTheme,

@@ -14,7 +14,8 @@ class AppConstants {
       'assets/images/other_wallets_icon.png';
 
   // App info
-  static const String appName = 'MWS DApp';
+  static const String appName = 'BAG MWS DApp';
+  static const String appTitle = 'BAG MWS DApp';
   static const String appVersion = '1.0.0';
   static const String copyright = '© 2023 MWS. All rights reserved.';
 

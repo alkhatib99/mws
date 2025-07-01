@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:mws/app/widgets/wallet_card.dart';
-import 'package:mws/app/widgets/custom_text_field.dart';
+import 'package:web3dart/web3dart.dart';
+import 'package:mws/widgets/wallet_card.dart';
+import 'package:mws/widgets/custom_text_field.dart';
 import 'package:mws/app/routes/app_routes.dart';
 import 'package:mws/app/theme/app_theme.dart';
 import 'package:mws/services/web3_service.dart';
@@ -433,10 +434,11 @@ class WalletConnectController extends GetxController
 
       // Get balance for the derived address
       final balance =
-          await _web3Service.getBalance(address, 'https://mainnet.base.org');
+          await _web3Service.getBalance(EthereumAddress.fromHex(address));
       if (balance != null) {
-        walletBalance.value = balance;
+        walletBalance.value = balance.getInEther.toDouble();
       }
+      // Navigate to MultiSend with the connected address
 
       _showSnackbar('Success', 'Wallet imported successfully!');
 

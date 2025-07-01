@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mws/app/controllers/multi_send_controller.dart';
 import 'package:mws/app/controllers/wallet_controller.dart';
- import '../app/widgets/custom_text_field.dart';
-import '../app/widgets/network_dropdown.dart';
-import '../app/widgets/send_button.dart';
-import '../app/widgets/tx_output_list.dart';
-import '../app/widgets/social_links_bar.dart';
+ import '../widgets/custom_text_field.dart';
+import '../widgets/network_dropdown.dart';
+import '../widgets/send_button.dart';
+import '../widgets/tx_output_list.dart';
+import '../widgets/social_links_bar.dart';
 import '../themes/app_theme.dart';
 
 class HomeScreen extends StatelessWidget {
