@@ -9,8 +9,8 @@ class AppTheme {
   static const Color primaryAccent = Color(0xFF8B5CF6); // Primary purple accent
   static const Color goldAccent =
       Color(0xFFF59E0B); // Gold accent for success/premium
-  static const Color blueAccent =
-      Color(0xFF3B82F6); // Blue accent for info/secondary
+  static const Color secondaryAccent =
+      Color(0xFF74B9FF); // Blue accent for info/secondary
   static const Color successGreen = Color(0xFF10B981); // Success states
   static const Color warningRed = Color(0xFFEF4444); // Error/warning states
   static const Color neutralGray =
@@ -32,7 +32,7 @@ class AppTheme {
       primaryColor: primaryAccent,
       colorScheme: const ColorScheme.dark(
         primary: primaryAccent,
-        secondary: blueAccent,
+        secondary: Colors.blueAccent,
         surface: secondaryBackground,
         onPrimary: Colors.white,
         onSecondary: Colors.white,

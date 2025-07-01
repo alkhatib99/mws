@@ -104,13 +104,15 @@ class MultiSendView extends StatelessWidget {
                     ),
 
                     // Amount Input
-                    Obx(() => CustomTextField(
-                          label: 'Amount (ETH):',
-                          hint: 'Enter amount in ETH',
-                          controller: controller.amountController,
-                          keyboardType: TextInputType.number,
-                          onChanged: (value) => controller.amount.value = value,
-                        )),
+
+                    CustomTextField(
+                      label: 'Amount (ETH):',
+                      hint: 'Enter amount in ETH',
+                      controller: controller.amountController,
+                      keyboardType: TextInputType.number,
+                      onChanged: (value) => controller.amount.value = value,
+                    ),
+
                     const SizedBox(height: 16),
 
                     // Network Dropdown

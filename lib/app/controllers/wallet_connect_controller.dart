@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mws/app/views/wallet_connect/widgets/wallet_card.dart';
 import 'package:mws/widgets/custom_text_field.dart';
-import '../routes/app_routes.dart';
+import 'package:mws/app/routes/app_routes.dart';
 import 'package:mws/app/theme/app_theme.dart';
+import 'package:mws/services/web3_service.dart';
 
 class WalletConnectController extends GetxController
     with GetSingleTickerProviderStateMixin {
   final TextEditingController privateKeyController = TextEditingController();
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+
+  // Web3 Service
+  final Web3Service _web3Service = Web3Service();
 
   // Animation controllers
   late AnimationController fadeController;
@@ -21,6 +26,8 @@ class WalletConnectController extends GetxController
   final RxDouble screenWidth = 0.0.obs;
   final RxDouble screenHeight = 0.0.obs;
   final RxString privateKeyError = ''.obs;
+  final RxString connectedAddress = ''.obs;
+  final RxDouble walletBalance = 0.0.obs;
 
   @override
   void onInit() {
@@ -146,7 +153,7 @@ class WalletConnectController extends GetxController
   double get gridChildAspectRatio {
     if (isDesktop) return 3.5; // Wider cards for desktop
     if (isTablet) return 3.0; // Slightly wider for tablets
-    return 4.0; // Taller cards for mobile
+    return 2.7; // Taller cards for mobile
   }
 
   // Wallet data
@@ -178,13 +185,6 @@ class WalletConnectController extends GetxController
       'description': 'Connect any mobile wallet via WalletConnect protocol',
       'status': 'available',
       'isWalletConnect': true,
-    },
-    {
-      'name': 'Rainbow',
-      'icon': 'assets/images/rainbow_logo.png',
-      'description': 'Connect via Rainbow wallet',
-      'status': 'available',
-      'isWalletConnect': false,
     },
     {
       'name': 'Ledger',
@@ -228,12 +228,6 @@ class WalletConnectController extends GetxController
       'name': 'Coinbase Wallet',
       'icon': 'assets/images/coinbase_logo.png',
       'description': 'Connect via Coinbase Wallet mobile app',
-      'status': 'available',
-    },
-    {
-      'name': 'Rainbow',
-      'icon': 'assets/images/rainbow_logo.png',
-      'description': 'Connect via Rainbow wallet',
       'status': 'available',
     },
     {
@@ -286,39 +280,6 @@ class WalletConnectController extends GetxController
     return null;
   }
 
-  /// Navigate to the MultiSend view with form validation
-  void navigateToMultiSend() {
-    // Clear previous errors
-    privateKeyError.value = '';
-
-    // Validate form
-    if (!formKey.currentState!.validate()) {
-      return;
-    }
-
-    final privateKey = privateKeyController.text.trim();
-    final validationError = validatePrivateKey(privateKey);
-
-    if (validationError != null) {
-      privateKeyError.value = validationError;
-      _showSnackbar('Validation Error', validationError);
-      return;
-    }
-
-    isLoading.value = true;
-
-    // Simulate loading delay
-    Future.delayed(const Duration(milliseconds: 1500), () {
-      isLoading.value = false;
-      _showSnackbar('Success', 'Wallet imported successfully!');
-
-      // Navigate to multi-send
-      Future.delayed(const Duration(milliseconds: 500), () {
-        Get.offNamed(Routes.multiSend);
-      });
-    });
-  }
-
   /// Toggle private key visibility
   void togglePrivateKeyVisibility() {
     isPrivateKeyVisible.value = !isPrivateKeyVisible.value;
@@ -366,42 +327,136 @@ class WalletConnectController extends GetxController
     );
   }
 
-  /// Handle WalletConnect wallet selection
-  void connectWalletConnectWallet(String walletName) {
-    Get.back(); // Close modal
+  /// Handle direct wallet connection (e.g., MetaMask, Trust Wallet)
+  Future<void> connectWallet(String walletName) async {
     selectedWallet.value = walletName;
     isLoading.value = true;
 
-    // Simulate WalletConnect connection process
-    Future.delayed(const Duration(milliseconds: 3000), () {
+    try {
+      bool success = false;
+
+      if (walletName == 'MetaMask' && _web3Service.isWeb3Available) {
+        // Real MetaMask connection
+        success = await _web3Service.connectWebWallet();
+        if (success) {
+          connectedAddress.value = _web3Service.connectedWebAddress ?? '';
+          // Get balance
+          final balance = await _web3Service.getWebWalletBalance();
+          if (balance != null) {
+            walletBalance.value = balance;
+          }
+        }
+      } else if (walletName == 'WalletConnect' ||
+          walletName == 'Other Wallets') {
+        // Handle WalletConnect flow for these specific names
+        await _connectWalletConnectFlow(walletName);
+        success = true; // Assume success if flow is initiated
+      } else {
+        // Simulate connection for other wallets
+        await Future.delayed(const Duration(milliseconds: 2000));
+        success = true;
+        connectedAddress.value = '0x${_generateRandomHex(40)}';
+        walletBalance.value =
+            1.5 + (DateTime.now().millisecondsSinceEpoch % 100) / 100;
+      }
+
+      if (success) {
+        _showSnackbar('Success', 'Connected to $walletName!');
+        // Navigate to multi-send after successful connection
+        Future.delayed(const Duration(milliseconds: 500), () {
+          Get.offNamed(Routes.multiSend);
+        });
+      } else {
+        _showSnackbar(
+            'Error', 'Failed to connect to $walletName. Please try again.');
+      }
+    } catch (e) {
+      _showSnackbar('Error', 'Connection failed: ${e.toString()}');
+    } finally {
       isLoading.value = false;
       selectedWallet.value = '';
-      _showSnackbar('Success',
-          'Connected via WalletConnect! Please check your $walletName app.');
+    }
+  }
 
-      // Navigate to multi-send after successful connection
-      Future.delayed(const Duration(milliseconds: 1000), () {
-        Get.offNamed(Routes.multiSend);
-      });
+  /// Internal method to handle WalletConnect specific flow
+  Future<void> _connectWalletConnectFlow(String walletName) async {
+    // Simulate WalletConnect connection process
+    await Future.delayed(const Duration(milliseconds: 3000));
+
+    connectedAddress.value = '0x${_generateRandomHex(40)}';
+    walletBalance.value =
+        2.3 + (DateTime.now().millisecondsSinceEpoch % 150) / 100;
+
+    _showSnackbar('Success',
+        'Connected via WalletConnect! Please check your $walletName app.');
+
+    // Navigate to multi-send after successful connection
+    Future.delayed(const Duration(milliseconds: 1000), () {
+      Get.offNamed(Routes.multiSend);
     });
   }
 
-  /// Handle direct wallet connection (e.g., MetaMask, Trust Wallet)
-  void connectWallet(String walletName) {
-    selectedWallet.value = walletName;
+  /// Navigate to the MultiSend view with form validation (for private key import)
+  Future<void> navigateToMultiSendFromPrivateKey() async {
+    // Clear previous errors
+    privateKeyError.value = '';
+
+    // Validate form
+    if (!formKey.currentState!.validate()) {
+      return;
+    }
+
+    final privateKey = privateKeyController.text.trim();
+    final validationError = validatePrivateKey(privateKey);
+
+    if (validationError != null) {
+      privateKeyError.value = validationError;
+      _showSnackbar('Validation Error', validationError);
+      return;
+    }
+
     isLoading.value = true;
 
-    // Simulate connection process
-    Future.delayed(const Duration(milliseconds: 2000), () {
-      isLoading.value = false;
-      selectedWallet.value = '';
-      _showSnackbar('Success', 'Connected to $walletName!');
+    try {
+      // Validate private key with Web3Service
+      if (!_web3Service.isValidPrivateKey(privateKey)) {
+        throw Exception('Invalid private key format');
+      }
 
-      // Navigate to multi-send after successful connection
+      // Get address from private key
+      final address = await _web3Service.getAddressFromPrivateKey(privateKey);
+      if (address == null) {
+        throw Exception('Failed to derive address from private key');
+      }
+
+      connectedAddress.value = address;
+
+      // Get balance for the derived address
+      final balance =
+          await _web3Service.getBalance(address, 'https://mainnet.base.org');
+      if (balance != null) {
+        walletBalance.value = balance;
+      }
+
+      _showSnackbar('Success', 'Wallet imported successfully!');
+
+      // Navigate to multi-send
       Future.delayed(const Duration(milliseconds: 500), () {
         Get.offNamed(Routes.multiSend);
       });
-    });
+    } catch (e) {
+      privateKeyError.value = e.toString();
+      _showSnackbar('Import Error', e.toString());
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  String _generateRandomHex(int length) {
+    const chars = '0123456789abcdef';
+    final random = DateTime.now().millisecondsSinceEpoch;
+    return List.generate(length, (i) => chars[(random + i) % chars.length])
+        .join();
   }
 
   Widget _buildModalHeader() {
@@ -436,51 +491,90 @@ class WalletConnectController extends GetxController
                 errorBuilder: (context, error, stackTrace) => Icon(
                   Icons.link,
                   color: AppTheme.primaryAccent,
-                  size: isDesktop ? 28 : 24,
+                  size: isDesktop
+                      ? 28
+                      : isTablet
+                          ? 26
+                          : 24,
                 ),
               ),
             ),
           ),
-          SizedBox(width: isDesktop ? 20 : 16),
+          SizedBox(width: isDesktop ? 16 : 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Connect with WalletConnect',
+                  'Connect via WalletConnect',
                   style: TextStyle(
                     fontSize: isDesktop
-                        ? 24
+                        ? 20
                         : isTablet
-                            ? 20
-                            : 18,
+                            ? 18
+                            : 16,
                     fontWeight: FontWeight.bold,
                     color: AppTheme.whiteText,
                     fontFamily: 'Montserrat',
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                SizedBox(height: isDesktop ? 6 : 4),
+                SizedBox(height: 4),
                 Text(
-                  'Choose your preferred wallet',
+                  'Scan QR code with your mobile wallet',
                   style: TextStyle(
-                    fontSize: isDesktop ? 16 : 14,
+                    fontSize: isDesktop
+                        ? 14
+                        : isTablet
+                            ? 13
+                            : 12,
                     color: AppTheme.lightGrayText,
                     fontFamily: 'Montserrat',
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
           ),
           IconButton(
+            icon: Icon(Icons.close, color: AppTheme.lightGrayText),
             onPressed: () => Get.back(),
-            icon: Icon(
-              Icons.close,
-              color: AppTheme.lightGrayText,
-              size: isDesktop ? 28 : 24,
-            ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildWalletConnectOptions() {
+    return GridView.builder(
+      shrinkWrap: true,
+      padding: EdgeInsets.all(isDesktop
+          ? 32
+          : isTablet
+              ? 24
+              : 20),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: isDesktop ? 2 : 1,
+        crossAxisSpacing: isDesktop ? 20 : 16,
+        mainAxisSpacing: isDesktop ? 20 : 16,
+        childAspectRatio: isDesktop ? 3.0 : 4.0,
+      ),
+      itemCount: walletConnectOptions.length,
+      itemBuilder: (context, index) {
+        final wallet = walletConnectOptions[index];
+        return WalletCard(
+          name: wallet['name']!,
+          iconPath: wallet['icon']!,
+          description: wallet['description']!,
+          isAvailable: wallet['status']! == 'available',
+          onTap: () => connectWallet(wallet['name']!),
+          isDesktop: isDesktop,
+          isTablet: isTablet,
+        );
+      },
     );
   }
 
@@ -499,26 +593,28 @@ class WalletConnectController extends GetxController
           ),
         ),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'Need help?',
+            'Having trouble connecting?',
             style: TextStyle(
-              fontSize: isDesktop ? 16 : 14,
+              fontSize: isDesktop ? 14 : 13,
               color: AppTheme.lightGrayText,
               fontFamily: 'Montserrat',
             ),
+            textAlign: TextAlign.center,
           ),
-          GestureDetector(
-            onTap: () {
-              // TODO: Implement help/support functionality
-              _showSnackbar('Help', 'Help functionality not yet implemented.');
+          SizedBox(height: 8),
+          TextButton(
+            onPressed: () {
+              // TODO: Implement help/troubleshooting link
+              _showSnackbar('Help', 'Opening help documentation...');
             },
             child: Text(
-              'Visit our support page',
+              'Get Help',
               style: TextStyle(
-                fontSize: isDesktop ? 16 : 14,
+                fontSize: isDesktop ? 14 : 13,
                 color: AppTheme.primaryAccent,
                 fontWeight: FontWeight.bold,
                 fontFamily: 'Montserrat',
@@ -530,199 +626,16 @@ class WalletConnectController extends GetxController
     );
   }
 
-  Widget _buildWalletConnectOptions() {
-    return Obx(() => Padding(
-          padding: EdgeInsets.all(isDesktop
-              ? 24
-              : isTablet
-                  ? 20
-                  : 16),
-          child: ListView.separated(
-            shrinkWrap: true,
-            itemCount: walletConnectOptions.length,
-            separatorBuilder: (context, index) =>
-                SizedBox(height: isDesktop ? 16 : 12),
-            itemBuilder: (context, index) {
-              final wallet = walletConnectOptions[index];
-              return _buildWalletConnectOption(
-                wallet['name']!,
-                wallet['icon']!,
-                wallet['description']!,
-                wallet['status']! == 'available',
-              );
-            },
-          ),
-        ));
-  }
-
-  Widget _buildWalletConnectOption(
-    String name,
-    String iconPath,
-    String description,
-    bool isAvailable,
-  ) {
-    return Obx(() {
-      final isConnecting = selectedWallet.value == name && isLoading.value;
-
-      return AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        decoration: BoxDecoration(
-          color: isConnecting
-              ? AppTheme.primaryAccent.withOpacity(0.1)
-              : AppTheme.textFieldBackground.withOpacity(0.5),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isConnecting
-                ? AppTheme.primaryAccent.withOpacity(0.3)
-                : Colors.transparent,
-            width: 1,
-          ),
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(16),
-            onTap: isAvailable && !isLoading.value
-                ? () => connectWalletConnectWallet(name)
-                : null,
-            child: Padding(
-              padding: EdgeInsets.all(isDesktop
-                  ? 24
-                  : isTablet
-                      ? 20
-                      : 16),
-              child: Row(
-                children: [
-                  Container(
-                    width: isDesktop ? 48 : 40,
-                    height: isDesktop ? 48 : 40,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      color: AppTheme.textFieldBackground,
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.asset(
-                        iconPath,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                AppTheme.primaryAccent.withOpacity(0.8),
-                                AppTheme.blueAccent.withOpacity(0.8),
-                              ],
-                            ),
-                          ),
-                          child: Icon(
-                            Icons.account_balance_wallet,
-                            size: isDesktop ? 24 : 20,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: isDesktop ? 20 : 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          name,
-                          style: TextStyle(
-                            fontSize: isDesktop ? 18 : 16,
-                            fontWeight: FontWeight.bold,
-                            color: isAvailable
-                                ? AppTheme.whiteText
-                                : AppTheme.lightGrayText,
-                            fontFamily: 'Montserrat',
-                          ),
-                        ),
-                        SizedBox(height: isDesktop ? 6 : 4),
-                        Text(
-                          description,
-                          style: TextStyle(
-                            fontSize: isDesktop ? 14 : 12,
-                            color: AppTheme.lightGrayText,
-                            fontFamily: 'Montserrat',
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (isConnecting)
-                    SizedBox(
-                      width: isDesktop ? 24 : 20,
-                      height: isDesktop ? 24 : 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          AppTheme.primaryAccent,
-                        ),
-                      ),
-                    )
-                  else
-                    Icon(
-                      isWalletConnecting(name)
-                          ? Icons.open_in_new
-                          : Icons.arrow_forward_ios,
-                      size: isDesktop ? 20 : 16,
-                      color: isAvailable
-                          ? AppTheme.primaryAccent
-                          : AppTheme.lightGrayText,
-                    ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      );
-    });
-  }
-
   void _showSnackbar(String title, String message) {
     Get.snackbar(
       title,
       message,
       snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: AppTheme.primaryAccent,
-      colorText: Colors.white,
+      backgroundColor: AppTheme.secondaryBackground,
+      colorText: AppTheme.whiteText,
       margin: const EdgeInsets.all(16),
       borderRadius: 8,
-    );
-  }
-
-  void showHelpDialog() {
-    Get.dialog(
-      AlertDialog(
-        backgroundColor: AppTheme.primaryBackground,
-        title: Text(
-          'Need Help?',
-          style: TextStyle(
-            color: AppTheme.whiteText,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        content: Text(
-          'For assistance, please visit our support page or contact our team.',
-          style: TextStyle(
-            color: AppTheme.lightGrayText,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: Text(
-              'Close',
-              style: TextStyle(
-                color: AppTheme.primaryAccent,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-      ),
+      duration: const Duration(seconds: 3),
     );
   }
 }

@@ -20,9 +20,9 @@ class TxOutputList extends StatelessWidget {
           child: Text(
             'Transaction Links:',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: AppTheme.whiteText,
-              fontWeight: FontWeight.bold,
-            ),
+                  color: AppTheme.whiteText,
+                  fontWeight: FontWeight.bold,
+                ),
           ),
         ),
         Container(
@@ -69,7 +69,7 @@ class TxOutputList extends StatelessWidget {
                           child: Text(
                             link,
                             style: const TextStyle(
-                              color: AppTheme.blueAccent,
+                              color: AppTheme.secondaryAccent,
                               fontSize: 12,
                               decoration: TextDecoration.underline,
                               fontFamily: 'Arial',
@@ -97,7 +97,7 @@ class TxOutputList extends StatelessWidget {
                         icon: const Icon(
                           Icons.open_in_new,
                           size: 16,
-                          color: AppTheme.blueAccent,
+                          color: AppTheme.secondaryAccent,
                         ),
                         tooltip: 'Open in browser',
                         constraints: const BoxConstraints(
@@ -144,4 +144,3 @@ class TxOutputList extends StatelessWidget {
     }
   }
 }
-
