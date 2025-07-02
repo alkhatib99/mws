@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:web3dart/web3dart.dart';
+import 'package:web3dart/credentials.dart'; // For EthereumAddress
 import 'package:mws/widgets/wallet_card.dart';
 import 'package:mws/widgets/custom_text_field.dart';
 import 'package:mws/app/routes/app_routes.dart';
 import 'package:mws/app/theme/app_theme.dart';
 import 'package:mws/services/web3_service.dart';
+import 'package:mws/services/wallet_connect_service.dart';
 import 'package:mws/services/session_service.dart';
 import 'package:mws/services/balance_service.dart';
 
@@ -14,10 +16,9 @@ class WalletConnectController extends GetxController
   final TextEditingController privateKeyController = TextEditingController();
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
-  // Web3 Service
+  // Services
   final Web3Service _web3Service = Web3Service();
-  
-  // Session Service
+  final WalletConnectService _walletConnectService = WalletConnectService();
   final SessionService _sessionService = Get.find<SessionService>();
 
   // Animation controllers
@@ -34,11 +35,13 @@ class WalletConnectController extends GetxController
   final RxString privateKeyError = ''.obs;
   final RxString connectedAddress = ''.obs;
   final RxDouble walletBalance = 0.0.obs;
+  final RxString connectionType = ''.obs; // 'metamask', 'walletconnect', 'privatekey'
 
   @override
   void onInit() {
     super.onInit();
     _initializeAnimations();
+    _initializeWalletConnect();
   }
 
   @override
@@ -341,32 +344,36 @@ class WalletConnectController extends GetxController
     try {
       bool success = false;
 
-      if (walletName == 'MetaMask' && _web3Service.isWeb3Available) {
-        // Real MetaMask connection
-        success = await _web3Service.connectWebWallet();
-        if (success) {
-          connectedAddress.value = _web3Service.connectedWebAddress ?? '';
-          // Get balance
-          final balance = await _web3Service.getWebWalletBalance();
-          if (balance != null) {
-            walletBalance.value = balance;
+      if (walletName == 'MetaMask') {
+        // Real MetaMask connection - check if MetaMask is available
+        if (_web3Service.isWeb3Available) {
+          success = await _web3Service.connectWebWallet();
+          if (success && _web3Service.isConnected) {
+            connectedAddress.value = _web3Service.connectedWebAddress ?? '';
+            // Get balance
+            final balance = await _web3Service.getWebWalletBalance();
+            if (balance != null) {
+              walletBalance.value = balance;
+            }
+          } else {
+            success = false;
           }
+        } else {
+          _showSnackbar('Error', 'MetaMask not detected. Please install MetaMask extension.');
+          success = false;
         }
       } else if (walletName == 'WalletConnect' ||
           walletName == 'Other Wallets') {
         // Handle WalletConnect flow for these specific names
         await _connectWalletConnectFlow(walletName);
-        success = true; // Assume success if flow is initiated
+        success = true; // _connectWalletConnectFlow handles navigation and success internally
       } else {
-        // Simulate connection for other wallets
-        await Future.delayed(const Duration(milliseconds: 2000));
-        success = true;
-        connectedAddress.value = '0x${_generateRandomHex(40)}';
-        walletBalance.value =
-            1.5 + (DateTime.now().millisecondsSinceEpoch % 100) / 100;
+        // For other wallets, show that they're not implemented yet
+        _showSnackbar('Info', '$walletName integration coming soon. Please use MetaMask or WalletConnect for now.');
+        success = false;
       }
 
-      if (success) {
+      if (success && connectedAddress.value.isNotEmpty && (walletName != 'WalletConnect' && walletName != 'Other Wallets')) {
         // Start session with connected wallet
         _sessionService.startSession(walletName, connectedAddress.value);
         
@@ -375,7 +382,7 @@ class WalletConnectController extends GetxController
         Future.delayed(const Duration(milliseconds: 500), () {
           Get.offNamed(Routes.multiSend);
         });
-      } else {
+      } else if (!success && (walletName != 'WalletConnect' && walletName != 'Other Wallets')) {
         _showSnackbar(
             'Error', 'Failed to connect to $walletName. Please try again.');
       }
@@ -387,25 +394,112 @@ class WalletConnectController extends GetxController
     }
   }
 
+  /// Initialize WalletConnect service
+  void _initializeWalletConnect() {
+    _walletConnectService.initialize(projectId: 'YOUR_PROJECT_ID');
+    
+    // Set up callbacks
+    _walletConnectService.onSessionEstablished = (address, walletName) {
+      connectedAddress.value = address;
+      connectionType.value = 'walletconnect';
+      _sessionService.startSession(walletName, address);
+      _showSnackbar('Success', 'Connected to $walletName!');
+      Get.offNamed(Routes.multiSend);
+    };
+
+    _walletConnectService.onSessionDisconnected = () {
+      connectedAddress.value = '';
+      connectionType.value = '';
+      _sessionService.endSession();
+      _showSnackbar('Disconnected', 'Wallet disconnected');
+    };
+
+    _walletConnectService.onConnectionError = (error) {
+      _showSnackbar('Error', error);
+    };
+  }
   /// Internal method to handle WalletConnect specific flow
   Future<void> _connectWalletConnectFlow(String walletName) async {
-    // Simulate WalletConnect connection process
-    await Future.delayed(const Duration(milliseconds: 3000));
+    try {
+      isLoading.value = true;
+      selectedWallet.value = walletName;
 
-    connectedAddress.value = '0x${_generateRandomHex(40)}';
-    walletBalance.value =
-        2.3 + (DateTime.now().millisecondsSinceEpoch % 150) / 100;
+      // Show wallet selection dialog for WalletConnect
+      final supportedWallets = _walletConnectService.getSupportedWallets();
+      
+      Get.dialog(
+        AlertDialog(
+          backgroundColor: AppTheme.secondaryBackground,
+          title: Text(
+            "Choose Wallet",
+            style: TextStyle(color: AppTheme.whiteText),
+          ),
+          content: Container(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: supportedWallets.length,
+              itemBuilder: (context, index) {
+                final wallet = supportedWallets[index];
+                return ListTile(
+                  leading: Icon(
+                    Icons.account_balance_wallet,
+                    color: AppTheme.primaryAccent,
+                  ),
+                  title: Text(
+                    wallet['name'],
+                    style: TextStyle(color: AppTheme.whiteText),
+                  ),
+                  subtitle: Text(
+                    wallet['description'],
+                    style: TextStyle(color: AppTheme.lightGrayText),
+                  ),
+                  onTap: () async {
+                    Get.back();
+                    await _connectToSpecificWallet(wallet['name']);
+                  },
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Get.back();
+                isLoading.value = false;
+                selectedWallet.value = '';
+              },
+              child: Text(
+                "Cancel",
+                style: TextStyle(color: AppTheme.lightGrayText),
+              ),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      _showSnackbar('Error', 'Failed to show wallet options: ${e.toString()}');
+      isLoading.value = false;
+      selectedWallet.value = '';
+    }
+  }
 
-    // Start session with connected wallet
-    _sessionService.startSession(walletName, connectedAddress.value);
-
-    _showSnackbar('Success',
-        'Connected via WalletConnect! Please check your $walletName app.');
-
-    // Navigate to multi-send after successful connection
-    Future.delayed(const Duration(milliseconds: 1000), () {
-      Get.offNamed(Routes.multiSend);
-    });
+  /// Connect to a specific wallet via WalletConnect
+  Future<void> _connectToSpecificWallet(String walletName) async {
+    try {
+      isLoading.value = true;
+      
+      final success = await _walletConnectService.connectWallet(walletName: walletName);
+      
+      if (!success) {
+        _showSnackbar('Error', 'Failed to connect to $walletName');
+      }
+    } catch (e) {
+      _showSnackbar('Error', 'Connection failed: ${e.toString()}');
+    } finally {
+      isLoading.value = false;
+      selectedWallet.value = '';
+    }
   }
 
   /// Navigate to the MultiSend view with form validation (for private key import)
@@ -429,36 +523,37 @@ class WalletConnectController extends GetxController
 
     isLoading.value = true;
 
+    String? address;
     try {
       // Validate private key with Web3Service
       if (!_web3Service.isValidPrivateKey(privateKey)) {
-        throw Exception('Invalid private key format');
+        throw Exception("Invalid private key format");
       }
 
       // Get address from private key
-      final address = await _web3Service.getAddressFromPrivateKey(privateKey);
-      if (address == null) {
-        throw Exception('Failed to derive address from private key');
+      address = await _web3Service.getAddressFromPrivateKey(privateKey);
+      if (address != null) {
+        connectedAddress.value = address;
+
+        // Get balance for the derived address
+        final balance =
+            await _web3Service.getBalance(EthereumAddress.fromHex(address));
+        if (balance != null) {
+          walletBalance.value = balance.getInEther.toDouble();
+        }
+        
+        // Start session with imported wallet
+        _sessionService.startSession("Private Key Import", address);
+
+        _showSnackbar("Success", "Wallet imported successfully!");
+
+        // Navigate to multi-send
+        Future.delayed(const Duration(milliseconds: 500), () {
+          Get.offNamed(Routes.multiSend);
+        });
+      } else {
+        throw Exception("Failed to derive address from private key");
       }
-
-      connectedAddress.value = address;
-
-      // Get balance for the derived address
-      final balance =
-          await _web3Service.getBalance(EthereumAddress.fromHex(address));
-      if (balance != null) {
-        walletBalance.value = balance.getInEther.toDouble();
-      }
-      
-      // Start session with imported wallet
-      _sessionService.startSession('Private Key Import', address);
-
-      _showSnackbar('Success', 'Wallet imported successfully!');
-
-      // Navigate to multi-send
-      Future.delayed(const Duration(milliseconds: 500), () {
-        Get.offNamed(Routes.multiSend);
-      });
     } catch (e) {
       privateKeyError.value = e.toString();
       _showSnackbar('Import Error', e.toString());

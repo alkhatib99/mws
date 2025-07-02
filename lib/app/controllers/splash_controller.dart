@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mws/app/routes/app_routes.dart';
+import 'package:mws/services/session_service.dart';
 
 class SplashController extends GetxController {
   final RxDouble logoOpacity = 0.0.obs;
@@ -9,6 +10,8 @@ class SplashController extends GetxController {
   final RxDouble titleOpacity = 0.0.obs;
   final Rx<Offset> subtitleOffset = const Offset(0, 0.5).obs;
   final RxDouble subtitleOpacity = 1.0.obs; // Changed to 1.0 for initial visibility
+
+  final SessionService _sessionService = Get.find<SessionService>();
 
   @override
   void onReady() {
@@ -30,8 +33,16 @@ class SplashController extends GetxController {
     subtitleOffset.value = Offset.zero;
     subtitleOpacity.value = 1.0;
 
-    await Future.delayed(const Duration(seconds: 4));
-    Get.offNamed(Routes.walletConnect);
+    await Future.delayed(const Duration(seconds: 2));
+    
+    // Check if there's an active session
+    if (_sessionService.isSessionActive.value && _sessionService.connectedAddress.value.isNotEmpty) {
+      // If there's an active session, go to multi-send
+      Get.offNamed(Routes.multiSend);
+    } else {
+      // Otherwise, go to wallet connect
+      Get.offNamed(Routes.walletConnect);
+    }
   }
 }
 

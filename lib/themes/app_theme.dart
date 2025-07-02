@@ -43,7 +43,7 @@ class AppTheme {
           color: whiteText,
           fontSize: 20,
           fontWeight: FontWeight.bold,
-          fontFamily: 'Montserrat', // Changed font
+          fontFamily: 'Montserrat',
         ),
       ),
 
@@ -90,7 +90,7 @@ class AppTheme {
         filled: true,
         fillColor: textFieldBackground,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12), // More rounded corners
+          borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
@@ -123,12 +123,12 @@ class AppTheme {
       // Elevated Button Theme
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: primaryAccent, // Use primaryAccent for main buttons
+          backgroundColor: primaryAccent,
           foregroundColor: Colors.white,
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12), // More rounded corners
+            borderRadius: BorderRadius.circular(12),
           ),
           textStyle: const TextStyle(
             fontSize: 16,
@@ -141,15 +141,14 @@ class AppTheme {
       // Outlined Button Theme
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          backgroundColor: Colors.transparent, // Transparent background
-          foregroundColor: primaryAccent, // Accent color for text/icon
+          backgroundColor: Colors.transparent,
+          foregroundColor: primaryAccent,
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          side:
-              const BorderSide(color: primaryAccent, width: 2), // Accent border
+          side: const BorderSide(color: primaryAccent, width: 2),
           textStyle: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
@@ -161,8 +160,8 @@ class AppTheme {
       // Text Button Theme
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          backgroundColor: Colors.transparent, // Transparent background
-          foregroundColor: lightGrayText, // Light gray for text
+          backgroundColor: Colors.transparent,
+          foregroundColor: lightGrayText,
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           shape: RoundedRectangleBorder(
@@ -200,9 +199,9 @@ class AppTheme {
         color: secondaryBackground,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.all(Radius.circular(16)),
         ),
-        margin: const EdgeInsets.all(8),
+        margin: EdgeInsets.all(8),
       ),
     );
   }
@@ -305,3 +304,5 @@ class AppTheme {
         ),
       );
 }
+
+
