@@ -148,7 +148,8 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          side: const BorderSide(color: primaryAccent, width: 2),
+          side:
+              const BorderSide(color: primaryAccent, width: 2),
           textStyle: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
@@ -195,13 +196,13 @@ class AppTheme {
       ),
 
       // Card Theme
-      cardTheme: CardThemeData(
+      cardTheme: CardTheme(
         color: secondaryBackground,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(16)),
+          borderRadius: BorderRadius.circular(16),
         ),
-        margin: EdgeInsets.all(8),
+        margin: const EdgeInsets.all(8),
       ),
     );
   }

@@ -14,10 +14,13 @@ class PrivateKeySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDesktop = MediaQuery.of(context).size.width > 1024;
+    final isTablet = MediaQuery.of(context).size.width > 768;
+
     return GlassCard(
-      padding: EdgeInsets.all(controller.isDesktop
+      padding: EdgeInsets.all(isDesktop
           ? 32
-          : controller.isTablet
+          : isTablet
               ? 24
               : 20),
       child: Column(
@@ -27,22 +30,35 @@ class PrivateKeySection extends StatelessWidget {
           Text(
             'Import Wallet',
             style: TextStyle(
-              fontSize: controller.sectionTitleFontSize,
+              fontSize: isDesktop
+                  ? 24
+                  : isTablet
+                      ? 20
+                      : 18,
               fontWeight: FontWeight.bold,
               color: AppTheme.whiteText,
               fontFamily: 'Montserrat',
             ),
           ),
-          SizedBox(height: controller.isDesktop ? 12 : 8),
+          SizedBox(height: isDesktop ? 12 : 8),
           Text(
             'Enter your private key to import an existing wallet',
             style: TextStyle(
-              fontSize: controller.subtitleFontSize,
+              fontSize: isDesktop
+                  ? 16
+                  : isTablet
+                      ? 14
+                      : 12,
               color: AppTheme.lightGrayText,
               fontFamily: 'Montserrat',
             ),
           ),
-          SizedBox(height: controller.verticalSpacing),
+          SizedBox(
+              height: isDesktop
+                  ? 24
+                  : isTablet
+                      ? 20
+                      : 16),
 
           // Private key input form
           Form(
@@ -51,7 +67,8 @@ class PrivateKeySection extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Private key input field
-                Obx(() => TextFormField(
+                Obx(
+                  () => TextFormField(
                       controller: controller.privateKeyController,
                       obscureText: !controller.isPrivateKeyVisible.value,
                       maxLines: controller.isPrivateKeyVisible.value
@@ -118,11 +135,10 @@ class PrivateKeySection extends StatelessWidget {
                         ),
                         contentPadding: EdgeInsets.symmetric(
                           horizontal: 16,
-                          vertical: controller.isDesktop ? 20 : 16,
+                          vertical: isDesktop ? 20 : 16,
                         ),
-                      ),
-                      validator: controller.validatePrivateKey,
-                    )),
+                      )),
+                ),
 
                 // Error message
                 Obx(() => controller.privateKeyError.value.isNotEmpty
@@ -132,19 +148,32 @@ class PrivateKeySection extends StatelessWidget {
                           controller.privateKeyError.value,
                           style: TextStyle(
                             color: AppTheme.warningRed,
-                            fontSize: controller.subtitleFontSize - 2,
+                            fontSize: (isDesktop
+                                ? 14
+                                : isTablet
+                                    ? 12
+                                    : 10),
                             fontFamily: 'Montserrat',
                           ),
                         ),
                       )
                     : const SizedBox.shrink()),
 
-                SizedBox(height: controller.verticalSpacing),
+                SizedBox(
+                    height: isDesktop
+                        ? 24
+                        : isTablet
+                            ? 20
+                            : 16),
 
                 // Import button
                 SizedBox(
                   width: double.infinity,
-                  height: controller.walletConnectButtonHeight,
+                  height: isDesktop
+                      ? 56
+                      : isTablet
+                          ? 52
+                          : 48,
                   child: Obx(() => ElevatedButton(
                         onPressed: controller.isLoading.value
                             ? null
@@ -173,7 +202,11 @@ class PrivateKeySection extends StatelessWidget {
                             : Text(
                                 'Import Wallet',
                                 style: TextStyle(
-                                  fontSize: controller.buttonFontSize,
+                                  fontSize: isDesktop
+                                      ? 16
+                                      : isTablet
+                                          ? 14
+                                          : 12,
                                   fontWeight: FontWeight.bold,
                                   fontFamily: 'Montserrat',
                                 ),

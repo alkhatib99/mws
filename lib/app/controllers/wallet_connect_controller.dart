@@ -7,18 +7,26 @@ import 'package:mws/widgets/custom_text_field.dart';
 import 'package:mws/app/routes/app_routes.dart';
 import 'package:mws/app/theme/app_theme.dart';
 import 'package:mws/services/web3_service.dart';
-import 'package:mws/services/wallet_connect_service.dart';
+import 'package:mws/services/wallet_connect_service.dart'; // This will now refer to the refactored service
 import 'package:mws/services/session_service.dart';
 import 'package:mws/services/balance_service.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:reown_appkit/reown_appkit.dart'; // Corrected import for RequiredNamespace
 
 class WalletConnectController extends GetxController
     with GetSingleTickerProviderStateMixin {
   final TextEditingController privateKeyController = TextEditingController();
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
-
+  final hasError = false.obs;
+  final privateKeyFocusNode = FocusNode();
+  final canRetry = false.obs;
+  final lastError = "".obs;
+  final isConnecting = false.obs;
   // Services
   final Web3Service _web3Service = Web3Service();
-  final WalletConnectService _walletConnectService = WalletConnectService();
+  final WalletConnectService _walletConnectService =
+      WalletConnectService(); // This now uses the reown_walletkit based service
   final SessionService _sessionService = Get.find<SessionService>();
 
   // Animation controllers
@@ -28,14 +36,15 @@ class WalletConnectController extends GetxController
 
   // Reactive variables for UI state
   final RxBool isLoading = false.obs;
-  final RxString selectedWallet = ''.obs;
+  final RxString selectedWallet = "".obs;
   final RxBool isPrivateKeyVisible = false.obs;
   final RxDouble screenWidth = 0.0.obs;
   final RxDouble screenHeight = 0.0.obs;
-  final RxString privateKeyError = ''.obs;
-  final RxString connectedAddress = ''.obs;
+  final RxString privateKeyError = "".obs;
+  final RxString connectedAddress = "".obs;
   final RxDouble walletBalance = 0.0.obs;
-  final RxString connectionType = ''.obs; // 'metamask', 'walletconnect', 'privatekey'
+  final RxString connectionType =
+      "".obs; // 'metamask', 'walletconnect', 'privatekey'
 
   @override
   void onInit() {
@@ -209,13 +218,14 @@ class WalletConnectController extends GetxController
       'status': 'available',
       'isWalletConnect': false,
     },
-    {
-      'name': 'Other Wallets',
+
+    /* { 
+      ' name': 'Other Wallets',
       'icon': 'assets/images/other_wallets_icon.png',
       'description': 'Connect other supported wallets',
       'status': 'available',
       'isWalletConnect': true,
-    },
+    },  */
   ].obs;
 
   // WalletConnect modal wallet options
@@ -359,30 +369,36 @@ class WalletConnectController extends GetxController
             success = false;
           }
         } else {
-          _showSnackbar('Error', 'MetaMask not detected. Please install MetaMask extension.');
+          _showSnackbar('Error',
+              'MetaMask not detected. Please install MetaMask extension.');
           success = false;
         }
       } else if (walletName == 'WalletConnect' ||
           walletName == 'Other Wallets') {
         // Handle WalletConnect flow for these specific names
         await _connectWalletConnectFlow(walletName);
-        success = true; // _connectWalletConnectFlow handles navigation and success internally
+        success =
+            true; // _connectWalletConnectFlow handles navigation and success internally
       } else {
         // For other wallets, show that they're not implemented yet
-        _showSnackbar('Info', '$walletName integration coming soon. Please use MetaMask or WalletConnect for now.');
+        _showSnackbar('Info',
+            '$walletName integration coming soon. Please use MetaMask or WalletConnect for now.');
         success = false;
       }
 
-      if (success && connectedAddress.value.isNotEmpty && (walletName != 'WalletConnect' && walletName != 'Other Wallets')) {
+      if (success &&
+          connectedAddress.value.isNotEmpty &&
+          (walletName != 'WalletConnect' && walletName != 'Other Wallets')) {
         // Start session with connected wallet
         _sessionService.startSession(walletName, connectedAddress.value);
-        
+
         _showSnackbar('Success', 'Connected to $walletName!');
         // Navigate to multi-send after successful connection
         Future.delayed(const Duration(milliseconds: 500), () {
           Get.offNamed(Routes.multiSend);
         });
-      } else if (!success && (walletName != 'WalletConnect' && walletName != 'Other Wallets')) {
+      } else if (!success &&
+          (walletName != 'WalletConnect' && walletName != 'Other Wallets')) {
         _showSnackbar(
             'Error', 'Failed to connect to $walletName. Please try again.');
       }
@@ -396,8 +412,9 @@ class WalletConnectController extends GetxController
 
   /// Initialize WalletConnect service
   void _initializeWalletConnect() {
-    _walletConnectService.initialize(projectId: 'YOUR_PROJECT_ID');
-    
+    _walletConnectService.initialize(
+        projectId: dotenv.env['WALLETCONNECT_PROJECT_ID']!);
+
     // Set up callbacks
     _walletConnectService.onSessionEstablished = (address, walletName) {
       connectedAddress.value = address;
@@ -418,6 +435,7 @@ class WalletConnectController extends GetxController
       _showSnackbar('Error', error);
     };
   }
+
   /// Internal method to handle WalletConnect specific flow
   Future<void> _connectWalletConnectFlow(String walletName) async {
     try {
@@ -426,7 +444,7 @@ class WalletConnectController extends GetxController
 
       // Show wallet selection dialog for WalletConnect
       final supportedWallets = _walletConnectService.getSupportedWallets();
-      
+
       Get.dialog(
         AlertDialog(
           backgroundColor: AppTheme.secondaryBackground,
@@ -447,16 +465,42 @@ class WalletConnectController extends GetxController
                     color: AppTheme.primaryAccent,
                   ),
                   title: Text(
-                    wallet['name'],
+                    wallet['name']!,
                     style: TextStyle(color: AppTheme.whiteText),
                   ),
                   subtitle: Text(
-                    wallet['description'],
+                    wallet['description']!,
                     style: TextStyle(color: AppTheme.lightGrayText),
                   ),
                   onTap: () async {
                     Get.back();
-                    await _connectToSpecificWallet(wallet['name']);
+                    // For WalletConnect, we need to generate a pairing URI and then open the deep link
+                    final uri = await _walletConnectService.createPairingUri(
+                      chains: [
+                        'eip155:1',
+                        'eip155:56',
+                        'eip155:8453'
+                      ], // Example chains
+                      requiredNamespaces: {
+                        'eip155': RequiredNamespace(
+                            methods: ['eth_sendTransaction', 'personal_sign'],
+                            chains: ['eip155:1', 'eip155:56', 'eip155:8453'],
+                            events: ['chainChanged', 'accountsChanged']),
+                      },
+                    );
+                    if (uri != null) {
+                      final deepLink = wallet['deepLink'] as String?;
+                      if (deepLink != null) {
+                        await launchUrl(Uri.parse(
+                            '$deepLink?uri=${Uri.encodeComponent(uri)}'));
+                      } else {
+                        _showSnackbar('Error',
+                            'Deep link not available for this wallet.');
+                      }
+                    } else {
+                      _showSnackbar(
+                          'Error', 'Failed to generate WalletConnect URI.');
+                    }
                   },
                 );
               },
@@ -486,20 +530,10 @@ class WalletConnectController extends GetxController
 
   /// Connect to a specific wallet via WalletConnect
   Future<void> _connectToSpecificWallet(String walletName) async {
-    try {
-      isLoading.value = true;
-      
-      final success = await _walletConnectService.connectWallet(walletName: walletName);
-      
-      if (!success) {
-        _showSnackbar('Error', 'Failed to connect to $walletName');
-      }
-    } catch (e) {
-      _showSnackbar('Error', 'Connection failed: ${e.toString()}');
-    } finally {
-      isLoading.value = false;
-      selectedWallet.value = '';
-    }
+    // This method is no longer directly used for connection, as the connection happens
+    // via the createPairingUri and the session established callback.
+    // Keeping it for now, but it might be removed or refactored.
+    print('Attempting to connect to $walletName via WalletConnect...');
   }
 
   /// Navigate to the MultiSend view with form validation (for private key import)
@@ -541,7 +575,7 @@ class WalletConnectController extends GetxController
         if (balance != null) {
           walletBalance.value = balance.getInEther.toDouble();
         }
-        
+
         // Start session with imported wallet
         _sessionService.startSession("Private Key Import", address);
 
@@ -625,7 +659,6 @@ class WalletConnectController extends GetxController
                             ? 18
                             : 16,
                     fontWeight: FontWeight.bold,
-                    color: AppTheme.whiteText,
                     fontFamily: 'Montserrat',
                   ),
                   maxLines: 1,
@@ -747,5 +780,13 @@ class WalletConnectController extends GetxController
       borderRadius: 8,
       duration: const Duration(seconds: 3),
     );
+  }
+
+  retryLastConnection() {
+    if (canRetry.value) {
+      // Implement the retry logic here
+    } else {
+      _showSnackbar('Error', 'No previous connection to retry.');
+    }
   }
 }

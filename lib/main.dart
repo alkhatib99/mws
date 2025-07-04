@@ -3,8 +3,10 @@ import 'package:get/get.dart';
 import 'package:mws/app/routes/app_pages.dart';
 import 'package:mws/app/theme/app_theme.dart';
 import 'package:mws/services/session_service.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() {
+Future<void> main() async {
+  await dotenv.load(fileName: ".env");
   // Initialize session service
   Get.put(SessionService(), permanent: true);
   
@@ -18,11 +20,14 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       title: 'MWS DApp',
-      theme: AppTheme.darkTheme,
+      theme: AppTheme.darkTheme.copyWith(
+        cardTheme: AppTheme.darkTheme.cardTheme, // Use the CardThemeData from AppTheme
+      ),
       initialRoute: AppPages.INITIAL,
       getPages: AppPages.routes,
       debugShowCheckedModeBanner: false,
     );
   }
 }
+
 

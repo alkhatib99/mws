@@ -95,6 +95,28 @@ class Web3Service {
     return EtherAmount.fromUnitAndValue(EtherUnit.wei, result[0] as BigInt);
   }
 
+  Future<String> sendTransaction({
+    required String privateKey,
+    required String recipientAddress,
+    required EtherAmount amount,
+    required int chainId,
+    EtherAmount? gasPrice,
+  }) async {
+    final credentials = EthPrivateKey.fromHex(privateKey);
+    final transaction = Transaction(
+      to: EthereumAddress.fromHex(recipientAddress),
+      value: amount,
+      gasPrice: gasPrice,
+      maxGas: 100000, // Default gas limit, can be estimated dynamically
+    );
+    final txHash = await _web3client.sendTransaction(credentials, transaction, chainId: chainId);
+    return txHash;
+  }
+
+  Future<EtherAmount> getGasPrice() async {
+    return await _web3client.getGasPrice();
+  }
+
   // Private key methods
   bool isValidPrivateKey(String privateKey) {
     try {
@@ -121,4 +143,5 @@ class Web3Service {
     connectedWebAddress = null;
   }
 }
+
 

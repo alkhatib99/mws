@@ -165,5 +165,13 @@ class SessionService extends GetxService {
       }
     });
   }
+
+  void validateSession() {
+    if (isSessionActive.value) {
+      print('Session is valid: ${connectedWallet.value} - ${connectedAddress.value}');
+    } else {
+      print('No active session found.');
+    }
+  }
 }
 

@@ -8,6 +8,7 @@ import 'package:mws/widgets/responsive_text.dart';
 import 'package:mws/widgets/responsive_grid.dart';
 import 'package:mws/widgets/wallet_card.dart';
 import 'package:mws/widgets/private_key_section.dart';
+import 'package:mws/widgets/error_display_widget.dart';
 import 'package:mws/utils/constants.dart';
 import 'package:collection/collection.dart';
 
@@ -95,6 +96,23 @@ class WalletConnectView extends StatelessWidget {
   Widget _buildMainContent(WalletConnectController controller) {
     return Column(
       children: [
+        // Connection Status Widget
+        Obx(() => _buildConnectionStatus(controller)),
+
+        // Error Display (if any)
+        Obx(() => controller.hasError.value
+            ? Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                child: InlineErrorWidget(
+                  message: controller.lastError.value,
+                  onRetry: controller.canRetry.value
+                      ? () => controller.retryLastConnection()
+                      : null,
+                  showRetry: controller.canRetry.value,
+                ),
+              )
+            : const SizedBox.shrink()),
+
         _buildWalletOptions(controller),
         SizedBox(height: controller.sectionSpacing),
         PrivateKeySection(controller: controller),
@@ -102,9 +120,41 @@ class WalletConnectView extends StatelessWidget {
     );
   }
 
+  Widget _buildConnectionStatus(WalletConnectController controller) {
+    if (!controller.isConnecting.value &&
+        !controller.hasError.value &&
+        controller.connectedAddress.value.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: ConnectionStatusWidget(
+        isConnected: controller.connectedAddress.value.isNotEmpty,
+        isConnecting: controller.isConnecting.value,
+        errorMessage:
+            controller.hasError.value ? controller.lastError.value : null,
+        onRetry: controller.canRetry.value
+            ? () => controller.retryLastConnection()
+            : null,
+        walletName: controller.connectionType.value == 'metamask'
+            ? 'MetaMask'
+            : controller.connectionType.value == 'walletconnect'
+                ? 'WalletConnect'
+                : controller.connectionType.value == 'privatekey'
+                    ? 'Private Key'
+                    : null,
+      ),
+    );
+  }
+
   Widget _buildWalletOptions(WalletConnectController controller) {
     return GlassCard(
-      padding: EdgeInsets.all(controller.isDesktop ? 32 : controller.isTablet ? 24 : 20),
+      padding: EdgeInsets.all(controller.isDesktop
+          ? 32
+          : controller.isTablet
+              ? 24
+              : 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -123,25 +173,24 @@ class WalletConnectView extends StatelessWidget {
             color: AppTheme.lightGrayText,
           ),
           SizedBox(height: controller.verticalSpacing),
-          
           Obx(() => ResponsiveGrid(
-            mobileColumns: 1,
-            tabletColumns: 2,
-            desktopColumns: controller.gridCrossAxisCount,
-            spacing: controller.isDesktop ? 20 : 16,
-            runSpacing: controller.isDesktop ? 20 : 16,
-            childAspectRatio: controller.gridChildAspectRatio,
-            children: controller.wallets.map((wallet) {
-              return _buildWalletCard(
-                controller,
-                wallet['name']!,
-                wallet['icon']!,
-                wallet['description']!,
-                wallet['status']! == 'available',
-                wallet['isWalletConnect']! as bool,
-              );
-            }).toList(),
-          )),
+                mobileColumns: 1,
+                tabletColumns: 2,
+                desktopColumns: controller.gridCrossAxisCount,
+                spacing: controller.isDesktop ? 20 : 16,
+                runSpacing: controller.isDesktop ? 20 : 16,
+                childAspectRatio: controller.gridChildAspectRatio,
+                children: controller.wallets.map((wallet) {
+                  return _buildWalletCard(
+                    controller,
+                    wallet['name']!,
+                    wallet['icon']!,
+                    wallet['description']!,
+                    wallet['status']! == 'available',
+                    wallet['isWalletConnect']! as bool,
+                  );
+                }).toList(),
+              )),
         ],
       ),
     );
@@ -204,4 +253,3 @@ class WalletConnectView extends StatelessWidget {
     );
   }
 }
-

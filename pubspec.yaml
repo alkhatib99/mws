@@ -20,6 +20,8 @@ dependencies:
   url_strategy: ^0.3.0
   flutter_web3: ^2.1.9
   collection: ^1.19.1
+  flutter_dotenv: ^5.2.1
+  reown_appkit: ^1.4.6+1
 
 dev_dependencies:
   flutter_test:
