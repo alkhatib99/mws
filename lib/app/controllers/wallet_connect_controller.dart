@@ -11,8 +11,7 @@ import 'package:mws/services/wallet_connect_service.dart'; // This will now refe
 import 'package:mws/services/session_service.dart';
 import 'package:mws/services/balance_service.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:reown_appkit/reown_appkit.dart'; // Corrected import for RequiredNamespace
+ import 'package:reown_appkit/reown_appkit.dart'; // Corrected import for RequiredNamespace
 
 class WalletConnectController extends GetxController
     with GetSingleTickerProviderStateMixin {
@@ -413,7 +412,8 @@ class WalletConnectController extends GetxController
   /// Initialize WalletConnect service
   void _initializeWalletConnect() async{
     await _walletConnectService.initialize(
-        projectId: dotenv.env['WALLETCONNECT_PROJECT_ID']!);
+        projectId: "c828aec3b3a8cdbc7a2fbf0ffe3be04a");
+        // dotenv.env['WALLETCONNECT_PROJECT_ID']!);
 
     // Set up callbacks
     // _walletConnectService.$_s onSessionEstablished = (address, walletName) {

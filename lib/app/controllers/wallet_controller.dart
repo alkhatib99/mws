@@ -11,8 +11,7 @@ import 'package:mws/app/routes/app_routes.dart';
 import 'package:mws/app/theme/app_theme.dart';
 import 'package:mws/services/session_service.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'dart:async';
+ import 'dart:async';
 
 class WalletController extends GetxController
     with GetSingleTickerProviderStateMixin {
@@ -129,7 +128,7 @@ class WalletController extends GetxController
     _web3Service.initialize('https://mainnet.infura.io/v3/YOUR_INFURA_KEY');
     
     // Initialize WalletConnect service
-    final projectId = dotenv.env['WALLETCONNECT_PROJECT_ID'] ?? '';
+    final projectId = "c828aec3b3a8cdbc7a2fbf0ffe3be04a";
     if (projectId.isNotEmpty) {
       _walletConnectService.initialize(projectId: projectId);
     }
