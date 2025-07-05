@@ -11,8 +11,6 @@ import 'package:mws/app/views/wallet_connect/wallet_connect_view.dart';
 import 'package:mws/middleware/session_middleware.dart';
 import 'package:mws/middleware/guest_middleware.dart';
 
-
- 
 class AppPages {
   AppPages._();
 
@@ -23,21 +21,22 @@ class AppPages {
       name: Routes.splash,
       page: () => const SplashView(),
       binding: SplashBinding(),
-      middlewares: [SessionMiddleware()],
+      // middlewares: [SessionMiddleware()],
     ),
     GetPage(
       name: Routes.walletConnect,
       page: () => const WalletConnectView(),
       binding: WalletConnectBinding(),
-      middlewares: [SessionMiddleware(), GuestMiddleware()],
+      // middlewares: [SessionMiddleware(), GuestMiddleware()],
     ),
     GetPage(
       name: Routes.multiSend,
       page: () => const MultiSendView(),
       binding: MultiSendBinding(),
-      middlewares: [SessionMiddleware(), 
-      // AuthMiddleware(),
-      ],
+      // middlewares: [
+      //   SessionMiddleware(),
+      //   // AuthMiddleware(),
+      // ],
     ),
   ];
 }

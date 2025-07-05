@@ -82,9 +82,9 @@ class _WalletCardState extends State< WalletCard>
   @override
   Widget build(BuildContext context) {
     final cardHeight = widget.isDesktop ? 120.0 : widget.isTablet ? 110.0 : 100.0;
-    final iconSize = widget.isDesktop ? 48.0 : widget.isTablet ? 44.0 : 40.0;
-    final titleFontSize = widget.isDesktop ? 16.0 : widget.isTablet ? 15.0 : 14.0;
-    final descriptionFontSize = widget.isDesktop ? 13.0 : widget.isTablet ? 12.0 : 11.0;
+    final iconSize = widget.isDesktop ? 48.0 : widget.isTablet ? 40.0 : 37.0;
+    final titleFontSize = widget.isDesktop ? 15.0 : widget.isTablet ? 14.0 : 13.0;
+    final descriptionFontSize = widget.isDesktop ? 12.0 : widget.isTablet ? 11.0 : 10.0;
 
     return AnimatedBuilder(
       animation: _animationController,
