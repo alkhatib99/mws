@@ -11,8 +11,7 @@ import 'package:mws/services/wallet_connect_service.dart'; // This will now refe
 import 'package:mws/services/session_service.dart';
 import 'package:mws/services/balance_service.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:reown_appkit/reown_appkit.dart'; // Corrected import for RequiredNamespace
+ import 'package:reown_appkit/reown_appkit.dart'; // Corrected import for RequiredNamespace
 
 class WalletConnectController extends GetxController
     with GetSingleTickerProviderStateMixin {
@@ -411,30 +410,31 @@ class WalletConnectController extends GetxController
   }
 
   /// Initialize WalletConnect service
-  void _initializeWalletConnect() {
-    _walletConnectService.initialize(
-        projectId: dotenv.env['WALLETCONNECT_PROJECT_ID']!);
+  void _initializeWalletConnect() async{
+    await _walletConnectService.initialize(
+        projectId: "c828aec3b3a8cdbc7a2fbf0ffe3be04a");
+        // dotenv.env['WALLETCONNECT_PROJECT_ID']!);
 
     // Set up callbacks
-    _walletConnectService.onSessionEstablished = (address, walletName) {
-      connectedAddress.value = address;
-      connectionType.value = 'walletconnect';
-      _sessionService.startSession(walletName, address);
-      _showSnackbar('Success', 'Connected to $walletName!');
-      Get.offNamed(Routes.multiSend);
-    };
+    // _walletConnectService.$_s onSessionEstablished = (address, walletName) {
+    //   connectedAddress.value = address;
+    //   connectionType.value = 'walletconnect';
+    //   _sessionService.startSession(walletName, address);
+    //   _showSnackbar('Success', 'Connected to $walletName!');
+    //   Get.offNamed(Routes.multiSend);
+    }
 
-    _walletConnectService.onSessionDisconnected = () {
-      connectedAddress.value = '';
-      connectionType.value = '';
-      _sessionService.endSession();
-      _showSnackbar('Disconnected', 'Wallet disconnected');
-    };
+    // _walletConnectService.onSessionDisconnected = () {
+    //   connectedAddress.value = '';
+    //   connectionType.value = '';
+    //   _sessionService.endSession();
+    //   _showSnackbar('Disconnected', 'Wallet disconnected');
+    // }
 
-    _walletConnectService.onConnectionError = (error) {
-      _showSnackbar('Error', error);
-    };
-  }
+    // _walletConnectService.onSessionError = (error) {
+    //   _showSnackbar('Error', error);
+    // };
+ 
 
   /// Internal method to handle WalletConnect specific flow
   Future<void> _connectWalletConnectFlow(String walletName) async {
@@ -707,6 +707,7 @@ class WalletConnectController extends GetxController
       ),
       itemCount: walletConnectOptions.length,
       itemBuilder: (context, index) {
+
         final wallet = walletConnectOptions[index];
         return WalletCard(
           name: wallet['name']!,

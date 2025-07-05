@@ -200,11 +200,11 @@ class MultiSendController extends GetxController {
     tokenUsdValues.clear();
     
     try {
-      // Fetch real balances from blockchain
+      // Fetch real balances from blockchain      final balances = await BalanceService.getAllTokenBalances(
       final balances = await BalanceService.getAllTokenBalances(
-        walletAddress,
-        selectedNetwork.value,
-        network.supportedTokens,
+         walletAddress,
+         network.name,
+         network.supportedTokens,
       );
       
       // Get USD prices for tokens
