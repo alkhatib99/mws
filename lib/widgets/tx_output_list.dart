@@ -35,7 +35,8 @@ class TxOutputList extends StatelessWidget {
             border: Border.all(color: Colors.grey.shade300),
           ),
           child: Obx(() {
-            if (controller.transactionLinks.isEmpty) {
+            if (controller.
+            transactionLinks.isEmpty) {
               return const Center(
                 child: Text(
                   'Transaction links will appear here after sending funds',

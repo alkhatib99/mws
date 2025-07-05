@@ -11,8 +11,7 @@ import 'package:mws/widgets/tx_output_list.dart';
 import 'package:mws/widgets/social_links_bar.dart';
 import 'package:mws/widgets/enhanced_button.dart';
 import 'package:mws/widgets/balance_card.dart';
-import 'package:mws/widgets/enhanced_amount_input.dart';
-import '../../theme/app_theme.dart';
+ import '../../theme/app_theme.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
@@ -120,14 +119,15 @@ class HomeView extends StatelessWidget {
                       hint: 'Enter your private key',
                       controller: controller.privateKeyController,
                       obscureText: true,
-                      onChanged: (value) => controller.privateKey.value = value,
+                      onChanged: (value) => controller
+                      .privateKeyController.text= value,
                     ),
                     const SizedBox(height: 16),
 
                     // Balance Card
                     Obx(
                       () => BalanceCard(
-                        balance: controller.balance.value,
+                        balance: controller.walletBalance.value,
                         symbol: controller.selectedToken.value?.symbol ?? '',
                         tokenName: controller.selectedToken.value?.name,
                         logoPath: controller.selectedToken.value?.logoPath,

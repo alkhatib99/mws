@@ -1,38 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:mws/app/theme/app_theme.dart';
 
-class WalletCard extends StatefulWidget {
+class  WalletCard extends StatefulWidget {
   final String name;
   final String iconPath;
   final String description;
   final bool isAvailable;
-  final bool isLoading;
-  final VoidCallback? onTap;
+  final bool isConnecting;
+  final VoidCallback onTap;
   final bool isDesktop;
   final bool isTablet;
+  final bool isSelected;
 
-  const WalletCard({
-    super.key,
+  const  WalletCard({
+    Key? key,
     required this.name,
     required this.iconPath,
     required this.description,
-    this.isAvailable = true,
-    this.isLoading = false,
-    this.onTap,
+    required this.isAvailable,
+    required this.onTap,
+    this.isConnecting = false,
     this.isDesktop = false,
     this.isTablet = false,
-  });
+    this.isSelected = false,
+  }) : super(key: key);
 
   @override
-  State<WalletCard> createState() => _WalletCardState();
+  State< WalletCard> createState() => _WalletCardState();
 }
 
-class _WalletCardState extends State<WalletCard>
+class _WalletCardState extends State< WalletCard>
     with SingleTickerProviderStateMixin {
+  bool _isHovered = false;
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
   late Animation<double> _glowAnimation;
-  bool _isHovered = false;
 
   @override
   void initState() {
@@ -41,6 +43,7 @@ class _WalletCardState extends State<WalletCard>
       duration: const Duration(milliseconds: 200),
       vsync: this,
     );
+
     _scaleAnimation = Tween<double>(
       begin: 1.0,
       end: 1.02,
@@ -48,6 +51,7 @@ class _WalletCardState extends State<WalletCard>
       parent: _animationController,
       curve: Curves.easeInOut,
     ));
+
     _glowAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -63,12 +67,11 @@ class _WalletCardState extends State<WalletCard>
     super.dispose();
   }
 
-  void _onHover(bool isHovered) {
-    if (!widget.isAvailable || widget.isLoading) return;
-    
+  void _onHoverChanged(bool isHovered) {
     setState(() {
       _isHovered = isHovered;
     });
+
     if (isHovered) {
       _animationController.forward();
     } else {
@@ -78,160 +81,289 @@ class _WalletCardState extends State<WalletCard>
 
   @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => _onHover(true),
-      onExit: (_) => _onHover(false),
-      child: AnimatedBuilder(
-        animation: _animationController,
-        builder: (context, child) {
-          return Transform.scale(
-            scale: _scaleAnimation.value,
-            child: Container(
-              decoration: BoxDecoration(
-                color: _isHovered 
-                    ? AppTheme.secondaryBackground.withOpacity(0.6)
-                    : AppTheme.secondaryBackground.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: _isHovered 
-                      ? AppTheme.primaryAccent.withOpacity(0.6)
-                      : AppTheme.primaryAccent.withOpacity(0.2),
-                  width: _isHovered ? 2 : 1,
-                ),
-                boxShadow: _isHovered
-                    ? [
-                        BoxShadow(
-                          color: AppTheme.primaryAccent.withOpacity(0.2),
-                          blurRadius: 15 * _glowAnimation.value,
-                          spreadRadius: 2 * _glowAnimation.value,
-                        ),
-                      ]
-                    : null,
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(16),
-                  onTap: widget.isAvailable && !widget.isLoading ? widget.onTap : null,
-                  child: Padding(
-                    padding: EdgeInsets.all(widget.isDesktop
-                        ? 18
-                        : widget.isTablet
-                            ? 14
-                            : 12),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: widget.isDesktop
-                              ? 48
-                              : widget.isTablet
-                                  ? 44
-                                  : 40,
-                          height: widget.isDesktop
-                              ? 48
-                              : widget.isTablet
-                                  ? 44
-                                  : 40,
+    final cardHeight = widget.isDesktop ? 120.0 : widget.isTablet ? 110.0 : 100.0;
+    final iconSize = widget.isDesktop ? 48.0 : widget.isTablet ? 44.0 : 40.0;
+    final titleFontSize = widget.isDesktop ? 16.0 : widget.isTablet ? 15.0 : 14.0;
+    final descriptionFontSize = widget.isDesktop ? 13.0 : widget.isTablet ? 12.0 : 11.0;
+
+    return AnimatedBuilder(
+      animation: _animationController,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: _scaleAnimation.value,
+          child: MouseRegion(
+            onEnter: (_) => _onHoverChanged(true),
+            onExit: (_) => _onHoverChanged(false),
+            child: GestureDetector(
+              onTap: widget.isAvailable && !widget.isConnecting ? widget.onTap : null,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                height: cardHeight,
+                decoration: _getCardDecoration(),
+                child: Stack(
+                  children: [
+                    // Glow effect
+                    if (_isHovered || widget.isSelected)
+                      Positioned.fill(
+                        child: Container(
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            color: AppTheme.primaryAccent.withOpacity(0.1),
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: Image.asset(
-                              widget.iconPath,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) => Icon(
-                                Icons.account_balance_wallet,
-                                color: AppTheme.primaryAccent,
-                                size: widget.isDesktop
-                                    ? 28
-                                    : widget.isTablet
-                                        ? 26
-                                        : 24,
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(
-                            width: widget.isDesktop
-                                ? 16
-                                : widget.isTablet
-                                    ? 14
-                                    : 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                widget.name,
-                                style: TextStyle(
-                                  fontSize: widget.isDesktop
-                                      ? 16
-                                      : widget.isTablet
-                                          ? 14
-                                          : 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: widget.isAvailable 
-                                      ? AppTheme.whiteText 
-                                      : AppTheme.lightGrayText,
-                                  fontFamily: 'Montserrat',
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              SizedBox(height: 4),
-                              Text(
-                                widget.description,
-                                style: TextStyle(
-                                  fontSize: widget.isDesktop
-                                      ? 12
-                                      : widget.isTablet
-                                          ? 11
-                                          : 10,
-                                  color: AppTheme.lightGrayText,
-                                  fontFamily: 'Montserrat',
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppTheme.primaryAccent.withOpacity(0.3 * _glowAnimation.value),
+                                blurRadius: 20,
+                                spreadRadius: 2,
                               ),
                             ],
                           ),
                         ),
-                        SizedBox(width: 8),
-                        if (widget.isLoading)
-                          SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                AppTheme.primaryAccent,
-                              ),
-                            ),
-                          )
-                        else
-                          Icon(
-                            Icons.arrow_forward_ios,
-                            color: _isHovered 
-                                ? AppTheme.primaryAccent 
-                                : AppTheme.lightGrayText,
-                            size: widget.isDesktop
-                                ? 20
-                                : widget.isTablet
-                                    ? 18
-                                    : 16,
+                      ),
+                    
+                    // Card content
+                    Padding(
+                      padding: EdgeInsets.all(widget.isDesktop ? 20.0 : 16.0),
+                      child: Row(
+                        children: [
+                          // Wallet icon
+                          _buildWalletIcon(iconSize),
+                          
+                          SizedBox(width: widget.isDesktop ? 16.0 : 12.0),
+                          
+                          // Wallet info
+                          Expanded(
+                            child: _buildWalletInfo(titleFontSize, descriptionFontSize),
                           ),
-                      ],
+                          
+                          // Status indicator
+                          _buildStatusIndicator(),
+                        ],
+                      ),
                     ),
-                  ),
+                    
+                    // Loading overlay
+                    if (widget.isConnecting)
+                      Positioned.fill(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.3),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Center(
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryAccent),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),
-          );
-        },
+          ),
+        );
+      },
+    );
+  }
+
+  BoxDecoration _getCardDecoration() {
+    if (widget.isSelected) {
+      return BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppTheme.primaryAccent.withOpacity(0.1),
+            AppTheme.primaryAccent.withOpacity(0.05),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppTheme.primaryAccent,
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primaryAccent.withOpacity(0.2),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      );
+    }
+
+    if (_isHovered && widget.isAvailable) {
+      return BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppTheme.secondaryBackground,
+            AppTheme.secondaryBackground.withOpacity(0.8),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppTheme.primaryAccent.withOpacity(0.5),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primaryAccent.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      );
+    }
+
+    return BoxDecoration(
+      color: widget.isAvailable 
+          ? AppTheme.secondaryBackground 
+          : AppTheme.secondaryBackground.withOpacity(0.5),
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(
+        color: widget.isAvailable 
+            ? AppTheme.neutralGray.withOpacity(0.3)
+            : AppTheme.neutralGray.withOpacity(0.1),
+        width: 1,
+      ),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.1),
+          blurRadius: 4,
+          offset: const Offset(0, 2),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWalletIcon(double iconSize) {
+    return Container(
+      width: iconSize,
+      height: iconSize,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: widget.isAvailable 
+            ? Colors.white.withOpacity(0.1)
+            : Colors.white.withOpacity(0.05),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Image.asset(
+          widget.iconPath,
+          width: iconSize,
+          height: iconSize,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              width: iconSize,
+              height: iconSize,
+              decoration: BoxDecoration(
+                color: AppTheme.primaryAccent.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.account_balance_wallet,
+                color: widget.isAvailable 
+                    ? AppTheme.primaryAccent 
+                    : AppTheme.lightGrayText,
+                size: iconSize * 0.6,
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWalletInfo(double titleFontSize, double descriptionFontSize) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          widget.name,
+          style: TextStyle(
+            fontSize: titleFontSize,
+            fontWeight: FontWeight.bold,
+            color: widget.isAvailable 
+                ? AppTheme.whiteText 
+                : AppTheme.lightGrayText,
+            fontFamily: 'Montserrat',
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          widget.description,
+          style: TextStyle(
+            fontSize: descriptionFontSize,
+            color: widget.isAvailable 
+                ? AppTheme.lightGrayText 
+                : AppTheme.lightGrayText.withOpacity(0.5),
+            fontFamily: 'Montserrat',
+          ),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatusIndicator() {
+    if (widget.isConnecting) {
+      return const SizedBox(
+        width: 20,
+        height: 20,
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryAccent),
+        ),
+      );
+    }
+
+    if (widget.isSelected) {
+      return Container(
+        width: 24,
+        height: 24,
+        decoration: const BoxDecoration(
+          color: AppTheme.primaryAccent,
+          shape: BoxShape.circle,
+        ),
+        child: const Icon(
+          Icons.check,
+          color: Colors.white,
+          size: 16,
+        ),
+      );
+    }
+
+    if (!widget.isAvailable) {
+      return Container(
+        width: 24,
+        height: 24,
+        decoration: BoxDecoration(
+          color: AppTheme.lightGrayText.withOpacity(0.3),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          Icons.lock,
+          color: AppTheme.lightGrayText,
+          size: 16,
+        ),
+      );
+    }
+
+    return AnimatedOpacity(
+      opacity: _isHovered ? 1.0 : 0.0,
+      duration: const Duration(milliseconds: 200),
+      child: const Icon(
+        Icons.arrow_forward_ios,
+        color: AppTheme.primaryAccent,
+        size: 16,
       ),
     );
   }
 }
+

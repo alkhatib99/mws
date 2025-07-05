@@ -411,30 +411,30 @@ class WalletConnectController extends GetxController
   }
 
   /// Initialize WalletConnect service
-  void _initializeWalletConnect() {
-    _walletConnectService.initialize(
+  void _initializeWalletConnect() async{
+    await _walletConnectService.initialize(
         projectId: dotenv.env['WALLETCONNECT_PROJECT_ID']!);
 
     // Set up callbacks
-    _walletConnectService.onSessionEstablished = (address, walletName) {
-      connectedAddress.value = address;
-      connectionType.value = 'walletconnect';
-      _sessionService.startSession(walletName, address);
-      _showSnackbar('Success', 'Connected to $walletName!');
-      Get.offNamed(Routes.multiSend);
-    };
+    // _walletConnectService.$_s onSessionEstablished = (address, walletName) {
+    //   connectedAddress.value = address;
+    //   connectionType.value = 'walletconnect';
+    //   _sessionService.startSession(walletName, address);
+    //   _showSnackbar('Success', 'Connected to $walletName!');
+    //   Get.offNamed(Routes.multiSend);
+    }
 
-    _walletConnectService.onSessionDisconnected = () {
-      connectedAddress.value = '';
-      connectionType.value = '';
-      _sessionService.endSession();
-      _showSnackbar('Disconnected', 'Wallet disconnected');
-    };
+    // _walletConnectService.onSessionDisconnected = () {
+    //   connectedAddress.value = '';
+    //   connectionType.value = '';
+    //   _sessionService.endSession();
+    //   _showSnackbar('Disconnected', 'Wallet disconnected');
+    // }
 
-    _walletConnectService.onConnectionError = (error) {
-      _showSnackbar('Error', error);
-    };
-  }
+    // _walletConnectService.onSessionError = (error) {
+    //   _showSnackbar('Error', error);
+    // };
+ 
 
   /// Internal method to handle WalletConnect specific flow
   Future<void> _connectWalletConnectFlow(String walletName) async {
@@ -707,6 +707,7 @@ class WalletConnectController extends GetxController
       ),
       itemCount: walletConnectOptions.length,
       itemBuilder: (context, index) {
+        var walletModel = WalletModel
         final wallet = walletConnectOptions[index];
         return WalletCard(
           name: wallet['name']!,
@@ -715,7 +716,8 @@ class WalletConnectController extends GetxController
           isAvailable: wallet['status']! == 'available',
           onTap: () => connectWallet(wallet['name']!),
           isDesktop: isDesktop,
-          isTablet: isTablet,
+          isTablet: isTablet, 
+          wallet: null,
         );
       },
     );

@@ -18,6 +18,7 @@ class WalletConnectView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final WalletConnectController controller = Get.find();
+    // Ensure the controller is initialized
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.updateScreenSize(MediaQuery.of(context).size);

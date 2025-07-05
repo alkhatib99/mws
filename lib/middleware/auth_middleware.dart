@@ -61,20 +61,4 @@ class GuestMiddleware extends GetMiddleware {
   }
 }
 
-/// Middleware for session validation and cleanup
-class SessionMiddleware extends GetMiddleware {
-  @override
-  int? get priority => 0; // Highest priority
-
-  @override
-  RouteSettings? redirect(String? route) {
-    final SessionService sessionService = Get.find<SessionService>();
-    
-    // Validate session on every route change
-    sessionService.validateSession();
-    
-    // No redirect, just validation
-    return null;
-  }
-}
 

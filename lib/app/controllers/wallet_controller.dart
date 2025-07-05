@@ -1,555 +1,727 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:file_picker/file_picker.dart';
-import 'dart:convert';
-import 'dart:math';
+import 'package:mws/services/wallet_connect_service.dart';
+import 'package:mws/services/web3_service.dart';
+import 'package:reown_appkit/reown_appkit.dart';
 import 'package:web3dart/web3dart.dart';
-import '../data/models/network_model.dart';
-import '../data/models/token_model.dart';
-import '../../services/web3_service.dart';
-import '../../services/price_service.dart';
+import 'package:web3dart/credentials.dart'; 
+import 'package:mws/services/secure_storage_service.dart';
+import 'package:mws/services/wallet_service_interface.dart';
+import 'package:mws/app/routes/app_routes.dart';
+import 'package:mws/app/theme/app_theme.dart';
+import 'package:mws/services/session_service.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'dart:async';
 
-class WalletController extends GetxController {
-  // Text controllers
+class WalletController extends GetxController
+    with GetSingleTickerProviderStateMixin {
+  
+  // Form controllers
   final TextEditingController privateKeyController = TextEditingController();
-  final TextEditingController amountController = TextEditingController();
-  final TextEditingController addressesController = TextEditingController();
-
-  // Observable variables
-  final RxString privateKey = ''.obs;
-  final RxString amount = ''.obs;
-  final RxString addresses = ''.obs;
-  final RxString selectedNetwork = 'Base'.obs;
-  final RxBool isLoading = false.obs;
-  final RxList<String> transactionLinks = <String>[].obs;
-  final RxDouble balance = 0.0.obs; // New: Wallet balance
-  final RxMap<String, double> tokenBalances = <String, double>{}.obs; // New: Token balances
-  final RxMap<String, double> tokenPricesUSD = <String, double>{}.obs; // New: Token prices in USD
-  final RxDouble balanceUSD = 0.0.obs; // New: Balance in USD
-  final Rx<Token?> selectedToken = Rx<Token?>(null); // New: Selected token
+  final TextEditingController passwordController = TextEditingController();
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> passwordFormKey = GlobalKey<FormState>();
+  
+  // Focus nodes
+  final FocusNode privateKeyFocusNode = FocusNode();
+  final FocusNode passwordFocusNode = FocusNode();
 
   // Services
-  final Web3Service _web3Service = Web3Service();
+  final  Web3Service _web3Service = Web3Service();
+  final  WalletConnectService _walletConnectService =  WalletConnectService();
+  final SessionService _sessionService = Get.find<SessionService>();
 
-  // Networks map
-  final RxMap<String, Network> networks = <String, Network>{
-    'Base': Network(
-      name: 'Base',
-      rpcUrl: 'https://mainnet.base.org',
-      chainId: 8453,
-      explorerUrl: 'https://basescan.org/tx/',
-      currency: 'ETH',
-      logoPath: 'assets/networks/base.png',
-      supportedTokens: [
-        Token(name: 'Ethereum', symbol: 'ETH', logoPath: 'assets/tokens/eth.png'),
-        Token(name: 'USD Coin', symbol: 'USDC', contractAddress: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', logoPath: 'assets/tokens/usdc.png'),
-        Token(name: 'Dai Stablecoin', symbol: 'DAI', contractAddress: '0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb', logoPath: 'assets/tokens/dai.png'),
-      ],
-    ),
-    'Ethereum': Network(
-      name: 'Ethereum',
-      rpcUrl: 'https://mainnet.infura.io/v3/YOUR_INFURA_KEY',
-      chainId: 1,
-      explorerUrl: 'https://etherscan.io/tx/',
-      currency: 'ETH',
-      logoPath: 'assets/networks/ethereum.png',
-      supportedTokens: [
-        Token(name: 'Ethereum', symbol: 'ETH', logoPath: 'assets/tokens/eth.png'),
-        Token(name: 'USD Coin', symbol: 'USDC', contractAddress: '0xA0b86a33E6441b8435b662f0E2d0c8b7c6b5b1e8', logoPath: 'assets/tokens/usdc.png'),
-        Token(name: 'Tether USD', symbol: 'USDT', contractAddress: '0xdAC17F958D2ee523a2206206994597C13D831ec7', logoPath: 'assets/tokens/usdt.png'),
-        Token(name: 'Dai Stablecoin', symbol: 'DAI', contractAddress: '0x6B175474E89094C44Da98b954EedeAC495271d0F', logoPath: 'assets/tokens/dai.png'),
-      ],
-    ),
-    'BNB Chain': Network(
-      name: 'BNB Chain',
-      rpcUrl: 'https://bsc-dataseed.binance.org/',
-      chainId: 56,
-      explorerUrl: 'https://bscscan.com/tx/',
-      currency: 'BNB',
-      logoPath: 'assets/networks/bnb.png',
-      supportedTokens: [
-        Token(name: 'BNB', symbol: 'BNB', logoPath: 'assets/tokens/bnb.png'),
-        Token(name: 'USD Coin', symbol: 'USDC', contractAddress: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d', logoPath: 'assets/tokens/usdc.png'),
-        Token(name: 'Tether USD', symbol: 'USDT', contractAddress: '0x55d398326f99059fF775485246999027B3197955', logoPath: 'assets/tokens/usdt.png'),
-        Token(name: 'PancakeSwap Token', symbol: 'CAKE', contractAddress: '0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82', logoPath: 'assets/tokens/cake.png'),
-      ],
-    ),
-  }.obs;
+  // Animation controllers
+  late AnimationController fadeController;
+  late Animation<double> fadeAnimation;
+  late Animation<Offset> slideAnimation;
+
+  // Reactive variables
+  final RxBool isLoading = false.obs;
+  final RxString selectedWallet = "".obs;
+  final RxBool isPrivateKeyVisible = false.obs;
+  final RxBool isPasswordVisible = false.obs;
+  final RxDouble screenWidth = 0.0.obs;
+  final RxDouble screenHeight = 0.0.obs;
+  final RxString privateKeyError = "".obs;
+  final RxString passwordError = "".obs;
+  final RxString connectedAddress = "".obs;
+  final RxDouble walletBalance = 0.0.obs;
+  final RxString connectionType = "".obs; // 'metamask', 'walletconnect', 'privatekey'
+  final RxString currentChainId = "1".obs; // Default to Ethereum mainnet
+  final RxString currentNetworkName = "Ethereum Mainnet".obs;
+  final RxString currentNetworkSymbol = "ETH".obs;
+  final RxBool isConnected = false.obs;
+  final RxBool showPasswordDialog = false.obs;
+  final RxBool rememberPassword = false.obs;
+
+  // Error handling
+  final RxBool hasError = false.obs;
+  final RxString lastError = "".obs;
+  final RxBool canRetry = false.obs;
+
+  // Subscription for service events
+  StreamSubscription? _accountChangedSubscription;
+  StreamSubscription? _chainChangedSubscription;
+  StreamSubscription? _connectionChangedSubscription;
+  StreamSubscription? _wcSessionEstablishedSubscription;
+  StreamSubscription? _wcSessionDisconnectedSubscription;
+  StreamSubscription? _wcConnectionErrorSubscription;
 
   @override
   void onInit() {
     super.onInit();
-    // Initialize with default network
-    selectedNetwork.value = 'Base';
-    // Set default token to the first token of the default network
-    _setDefaultToken();
-    // Listen for private key changes to fetch balance
-    ever(privateKey, (_) => _fetchBalance());
-    // Listen for network changes to fetch balance and update default token
-    ever(selectedNetwork, (_) {
-      _setDefaultToken();
-      _fetchBalance();
-    });
-    // Listen for token changes to fetch balance
-    ever(selectedToken, (_) => _fetchBalance());
+    _initializeAnimations();
+    _initializeServices();
+    _setupEventListeners();
+  }
+
+  @override
+  void onReady() {
+    super.onReady();
+    _startAnimations();
+    _checkExistingConnection();
   }
 
   @override
   void onClose() {
     privateKeyController.dispose();
-    amountController.dispose();
-    addressesController.dispose();
+    passwordController.dispose();
+    privateKeyFocusNode.dispose();
+    passwordFocusNode.dispose();
+    fadeController.dispose();
+    _cancelSubscriptions();
+    _web3Service.dispose();
+    _walletConnectService.dispose();
     super.onClose();
   }
 
-  // Set default token for the selected network
-  void _setDefaultToken() {
-    final network = networks[selectedNetwork.value];
-    if (network != null && network.supportedTokens.isNotEmpty) {
-      selectedToken.value = network.supportedTokens.first;
+  void _initializeAnimations() {
+    fadeController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: fadeController,
+      curve: Curves.easeInOut,
+    ));
+
+    slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.3),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: fadeController,
+      curve: Curves.easeOutCubic,
+    ));
+  }
+
+  void _startAnimations() {
+    fadeController.forward();
+  }
+
+  void _initializeServices() {
+    // Initialize Web3 service with default RPC
+    _web3Service.initialize('https://mainnet.infura.io/v3/YOUR_INFURA_KEY');
+    
+    // Initialize WalletConnect service
+    final projectId = dotenv.env['WALLETCONNECT_PROJECT_ID'] ?? '';
+    if (projectId.isNotEmpty) {
+      _walletConnectService.initialize(projectId: projectId);
     }
   }
 
-  // Set selected network
-  void setSelectedNetwork(String network) {
-    selectedNetwork.value = network;
+  void _setupEventListeners() {
+    // Web3 service events
+    _accountChangedSubscription = _web3Service.onAccountChanged.listen((address) {
+      connectedAddress.value = address;
+      _updateBalance();
+    });
+
+    _chainChangedSubscription = _web3Service.onChainChanged.listen((chainId) {
+      currentChainId.value = chainId;
+      _updateNetworkInfo(chainId);
+      _updateBalance();
+    });
+
+    _connectionChangedSubscription = _web3Service.onConnectionChanged.listen((connected) {
+      isConnected.value = connected;
+      if (!connected) {
+        _clearConnectionData();
+      }
+    });
+
+    // WalletConnect service events
+    _wcSessionEstablishedSubscription = _walletConnectService.onSessionEstablished.listen((data) {
+      connectedAddress.value = data['address']!;
+      connectionType.value = 'walletconnect';
+      currentChainId.value = data['chainId']!;
+      isConnected.value = true;
+      _updateNetworkInfo(data['chainId']!);
+      _updateBalance();
+      _sessionService.startSession(data['walletName']!, data['address']!);
+      _showSnackbar('Success', 'Connected to ${data['walletName']}!');
+      Get.offNamed(Routes.multiSend);
+    });
+
+    _wcSessionDisconnectedSubscription = _walletConnectService.onSessionDisconnected.listen((_) {
+      _clearConnectionData();
+      _showSnackbar('Disconnected', 'Wallet disconnected');
+    });
+
+    _wcConnectionErrorSubscription = _walletConnectService.onConnectionError.listen((error) {
+      _showSnackbar('Error', error);
+      isLoading.value = false;
+      selectedWallet.value = '';
+    });
   }
 
-  // Set selected token
-  void setSelectedToken(Token token) {
-    selectedToken.value = token;
-    // Update balance and USD value for the selected token
-    balance.value = tokenBalances[token.symbol] ?? 0.0;
-    final price = tokenPricesUSD[token.symbol] ?? 0.0;
-    balanceUSD.value = balance.value * price;
+  void _cancelSubscriptions() {
+    _accountChangedSubscription?.cancel();
+    _chainChangedSubscription?.cancel();
+    _connectionChangedSubscription?.cancel();
+    _wcSessionEstablishedSubscription?.cancel();
+    _wcSessionDisconnectedSubscription?.cancel();
+    _wcConnectionErrorSubscription?.cancel();
   }
 
-  // Add custom network
-  void addCustomNetwork(String name, String rpc, int chainId, String explorer, String currency) {
-    networks[name] = Network(
-      name: name,
-      rpcUrl: rpc,
-      chainId: chainId,
-      explorerUrl: explorer,
-      currency: currency,
-      logoPath: 'assets/networks/default.png',
-      supportedTokens: [
-        Token(name: currency, symbol: currency, logoPath: 'assets/tokens/default.png'),
-      ],
-    );
-    Get.snackbar(
-      'Success',
-      'Network "$name" added successfully',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.green,
-      colorText: Colors.white,
-      duration: const Duration(seconds: 2),
-    );
+  void _clearConnectionData() {
+    isConnected.value = false;
+    connectedAddress.value = '';
+    connectionType.value = '';
+    walletBalance.value = 0.0;
+    _sessionService.endSession();
   }
 
-  // Show add network dialog
-  void showAddNetworkDialog() {
-    final TextEditingController nameController = TextEditingController();
-    final TextEditingController rpcController = TextEditingController();
-    final TextEditingController chainIdController = TextEditingController();
-    final TextEditingController explorerController = TextEditingController();
-    final TextEditingController currencyController = TextEditingController();
+  Future<void> _checkExistingConnection() async {
+    // Check if there's an existing MetaMask connection
+    if (_web3Service.isWeb3Available && _web3Service.isConnected) {
+      connectedAddress.value = _web3Service.connectedWebAddress ?? '';
+      connectionType.value = 'metamask';
+      isConnected.value = true;
+      final chainId = await _web3Service.getCurrentChainId();
+      if (chainId != null) {
+        currentChainId.value = chainId;
+        _updateNetworkInfo(chainId);
+      }
+      _updateBalance();
+    }
 
+    // Check if there's a stored private key
+    if (await SecureStorageService.hasPrivateKey()) {
+      // Could show a dialog to unlock with password
+    }
+  }
+
+  void _updateNetworkInfo(String chainId) {
+    currentNetworkName.value = _web3Service.getNetworkName(chainId);
+    currentNetworkSymbol.value = _web3Service.getNetworkSymbol(chainId);
+  }
+
+  Future<void> _updateBalance() async {
+    if (!isConnected.value || connectedAddress.value.isEmpty) return;
+
+    try {
+      double? balance;
+      if (connectionType.value == 'metamask') {
+        balance = await _web3Service.getWebWalletBalance();
+      } else if (connectionType.value == 'privatekey') {
+        final address = EthereumAddress.fromHex(connectedAddress.value);
+        final balanceWei = await _web3Service.getBalance(address);
+        balance = balanceWei.getInEther.toDouble();
+      }
+      
+      if (balance != null) {
+        walletBalance.value = balance;
+      }
+    } catch (e) {
+      print('Error updating balance: $e');
+    }
+  }
+
+  // Update screen dimensions for responsive design
+  void updateScreenSize(Size size) {
+    screenWidth.value = size.width;
+    screenHeight.value = size.height;
+  }
+
+  // Responsive design properties
+  bool get isMobile => screenWidth.value < 600;
+  bool get isTablet => screenWidth.value >= 600 && screenWidth.value < 1024;
+  bool get isDesktop => screenWidth.value >= 1024;
+
+  double get maxContentWidth => isDesktop ? 800 : double.infinity;
+  double get horizontalPadding {
+    if (isDesktop) return 48.0;
+    if (isTablet) return 32.0;
+    return 20.0;
+  }
+
+  double get verticalSpacing {
+    if (isDesktop) return 48.0;
+    if (isTablet) return 36.0;
+    return 24.0;
+  }
+
+  // Wallet data
+  final RxList<Map<String, dynamic>> wallets = <Map<String, dynamic>>[
+    {
+      'name': 'MetaMask',
+      'icon': 'assets/images/metamask_logo.png',
+      'description': 'Connect via MetaMask browser extension or mobile app',
+      'status': 'available',
+      'type': 'extension',
+    },
+    {
+      'name': 'WalletConnect',
+      'icon': 'assets/images/walletconnect_logo.png',
+      'description': 'Connect any mobile wallet via WalletConnect protocol',
+      'status': 'available',
+      'type': 'walletconnect',
+    },
+    {
+      'name': 'Trust Wallet',
+      'icon': 'assets/images/trustwallet_logo.png',
+      'description': 'Connect via Trust Wallet mobile app',
+      'status': 'available',
+      'type': 'walletconnect',
+    },
+    {
+      'name': 'Coinbase Wallet',
+      'icon': 'assets/images/coinbase_logo.png',
+      'description': 'Connect via Coinbase Wallet mobile app',
+      'status': 'available',
+      'type': 'walletconnect',
+    },
+  ].obs;
+
+  final  subtitleFontSize = 14.0;
+
+  // final transactionLinks  =  ; // Default subtitle font size
+
+  // Validation methods
+  String? validatePrivateKey(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Private key is required';
+    }
+
+    final trimmedValue = value.trim();
+    if (!_web3Service.isValidPrivateKey(trimmedValue)) {
+      return 'Invalid private key format';
+    }
+
+    return null;
+  }
+
+  String? validatePassword(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Password is required';
+    }
+
+    if (value.length < 6) {
+      return 'Password must be at least 6 characters';
+    }
+
+    return null;
+  }
+
+  // UI methods
+  void togglePrivateKeyVisibility() {
+    isPrivateKeyVisible.value = !isPrivateKeyVisible.value;
+  }
+
+  void togglePasswordVisibility() {
+    isPasswordVisible.value = !isPasswordVisible.value;
+  }
+
+  bool isWalletConnecting(String walletName) {
+    return selectedWallet.value == walletName && isLoading.value;
+  }
+
+  // Connection methods
+  Future<void> connectWallet(String walletName) async {
+    selectedWallet.value = walletName;
+    isLoading.value = true;
+    hasError.value = false;
+    lastError.value = '';
+
+    try {
+      bool success = false;
+
+      if (walletName == 'MetaMask') {
+        success = await _connectMetaMask();
+      } else if (walletName == 'WalletConnect' || 
+                 walletName == 'Trust Wallet' || 
+                 walletName == 'Coinbase Wallet') {
+        success = await _connectWalletConnect(walletName);
+      }
+
+      if (success && connectedAddress.value.isNotEmpty) {
+        _sessionService.startSession(walletName, connectedAddress.value);
+        _showSnackbar('Success', 'Connected to $walletName!');
+        Future.delayed(const Duration(milliseconds: 500), () {
+          Get.offNamed(Routes.multiSend);
+        });
+      }
+    } catch (e) {
+      hasError.value = true;
+      lastError.value = e.toString();
+      canRetry.value = true;
+      _showSnackbar('Error', 'Connection failed: ${e.toString()}');
+    } finally {
+      isLoading.value = false;
+      selectedWallet.value = '';
+    }
+  }
+
+  Future<bool> _connectMetaMask() async {
+    if (!_web3Service.isWeb3Available) {
+      throw Exception('MetaMask not detected. Please install MetaMask extension.');
+    }
+
+    final success = await _web3Service.connectWebWallet();
+    if (success && _web3Service.isConnected) {
+      connectedAddress.value = _web3Service.connectedWebAddress ?? '';
+      connectionType.value = 'metamask';
+      isConnected.value = true;
+      
+      final chainId = await _web3Service.getCurrentChainId();
+      if (chainId != null) {
+        currentChainId.value = chainId;
+        _updateNetworkInfo(chainId);
+      }
+      
+      await _updateBalance();
+      return true;
+    }
+    
+    return false;
+  }
+
+  Future<bool> _connectWalletConnect(String walletName) async {
+    try {
+      final uri = await _walletConnectService.createPairingUri(
+        chains: ['eip155:1', 'eip155:56', 'eip155:137', 'eip155:8453'],
+        requiredNamespaces: {
+          'eip155': RequiredNamespace(
+            methods: ['eth_sendTransaction', 'personal_sign'],
+            chains: ['eip155:1', 'eip155:56', 'eip155:137', 'eip155:8453'],
+            events: ['chainChanged', 'accountsChanged'],
+          ),
+        },
+      );
+
+      if (uri != null) {
+        if (walletName != 'WalletConnect') {
+          // Open specific wallet app
+          await _walletConnectService.openWalletApp(walletName, uri);
+        } else {
+          // Show QR code or wallet selection
+          _showWalletConnectModal(uri);
+        }
+        return true; // Connection will be handled by event listeners
+      }
+      
+      return false;
+    } catch (e) {
+      throw Exception('Failed to initiate WalletConnect: ${e.toString()}');
+    }
+  }
+
+  void _showWalletConnectModal(String uri) {
     Get.dialog(
-      AlertDialog(
-        backgroundColor: const Color(0xFF2A2A3A),
-        title: const Text(
-          'Add Custom Network',
-          style: TextStyle(color: Colors.white),
-        ),
-        content: SizedBox(
-          width: 400,
+      Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          width: isDesktop ? 600 : screenWidth.value * 0.9,
+          padding: const EdgeInsets.all(24),
+          decoration: AppTheme.glassCardDecoration,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(
-                controller: nameController,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: 'Network Name',
-                  labelStyle: TextStyle(color: Colors.grey),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.grey),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.blue),
-                  ),
+              Text(
+                'Connect Your Wallet',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.whiteText,
                 ),
               ),
               const SizedBox(height: 16),
-              TextField(
-                controller: rpcController,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: 'RPC URL',
-                  labelStyle: TextStyle(color: Colors.grey),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.grey),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.blue),
-                  ),
+              Text(
+                'Scan QR code with your mobile wallet or choose a wallet below',
+                style: TextStyle(
+                  color: AppTheme.lightGrayText,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              // QR Code would go here
+              Container(
+                width: 200,
+                height: 200,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Center(
+                  child: Text('QR Code\n(Implementation needed)'),
                 ),
               ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: chainIdController,
-                style: const TextStyle(color: Colors.white),
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Chain ID',
-                  labelStyle: TextStyle(color: Colors.grey),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.grey),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.blue),
-                  ),
+              const SizedBox(height: 24),
+              ...(_walletConnectService.getSupportedWallets().map((wallet) => 
+                ListTile(
+                  leading: Icon(Icons.account_balance_wallet, color: AppTheme.primaryAccent),
+                  title: Text(wallet['name']!, style: TextStyle(color: AppTheme.whiteText)),
+                  subtitle: Text(wallet['description']!, style: TextStyle(color: AppTheme.lightGrayText)),
+                  onTap: () {
+                    Get.back();
+                    _walletConnectService.openWalletApp(wallet['name']!, uri);
+                  },
                 ),
-              ),
+              )),
               const SizedBox(height: 16),
-              TextField(
-                controller: explorerController,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: 'Explorer URL (optional)',
-                  labelStyle: TextStyle(color: Colors.grey),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.grey),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.blue),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: currencyController,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: 'Currency Symbol (e.g., ETH, BNB)',
-                  labelStyle: TextStyle(color: Colors.grey),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.grey),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.blue),
-                  ),
-                ),
+              TextButton(
+                onPressed: () => Get.back(),
+                child: Text('Cancel', style: TextStyle(color: AppTheme.lightGrayText)),
               ),
             ],
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final name = nameController.text.trim();
-              final rpc = rpcController.text.trim();
-              final chainIdText = chainIdController.text.trim();
-              final explorer = explorerController.text.trim();
-              final currency = currencyController.text.trim();
-
-              if (name.isEmpty || rpc.isEmpty || chainIdText.isEmpty || currency.isEmpty) {
-                Get.snackbar(
-                  'Error',
-                  'Please fill in all required fields',
-                  snackPosition: SnackPosition.BOTTOM,
-                  backgroundColor: Colors.red,
-                  colorText: Colors.white,
-                );
-                return;
-              }
-
-              final chainId = int.tryParse(chainIdText);
-              if (chainId == null) {
-                Get.snackbar(
-                  'Error',
-                  'Invalid Chain ID',
-                  snackPosition: SnackPosition.BOTTOM,
-                  backgroundColor: Colors.red,
-                  colorText: Colors.white,
-                );
-                return;
-              }
-
-              addCustomNetwork(name, rpc, chainId, explorer, currency);
-              Get.back();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
-            ),
-            child: const Text('Add Network'),
-          ),
-        ],
       ),
     );
   }
 
-  // Fetch wallet balance
-  Future<void> _fetchBalance() async {
-    if (privateKey.value.isEmpty) {
-      balance.value = 0.0;
-      balanceUSD.value = 0.0;
-      tokenBalances.clear();
-      tokenPricesUSD.clear();
+  // Private key import methods
+  Future<void> importPrivateKey() async {
+    privateKeyError.value = '';
+
+    if (!formKey.currentState!.validate()) {
       return;
     }
 
-    try {
-      final networkInfo = networks[selectedNetwork.value];
-      if (networkInfo == null) {
-        throw Exception("Network not found");
-      }
+    final privateKey = privateKeyController.text.trim();
+    final validationError = validatePrivateKey(privateKey);
 
-      _web3Service.initialize(networkInfo.rpcUrl);
-      final credentials = EthPrivateKey.fromHex(privateKey.value);
-      final address = credentials.address;
-
-      // Fetch native currency balance
-      final nativeBalance = await _web3Service.getBalance(address);
-      tokenBalances[networkInfo.currency] = nativeBalance.getValueInUnit(EtherUnit.ether);
-
-      // Fetch ERC-20 token balances
-      for (var token in networkInfo.supportedTokens) {
-        if (token.contractAddress != null) {
-          final tokenBalance = await _web3Service.getTokenBalance(
-            EthereumAddress.fromHex(token.contractAddress!),
-            address,
-          );
-          // Assuming 18 decimals for simplicity, adjust if needed
-          tokenBalances[token.symbol] = tokenBalance.getValueInUnit(EtherUnit.ether);
-        }
-      }
-
-      // Fetch USD prices for all tokens
-      final tokenSymbols = [networkInfo.currency, ...networkInfo.supportedTokens.map((t) => t.symbol)];
-      final prices = await PriceService.getMultipleTokenPrices(tokenSymbols);
-      tokenPricesUSD.addAll(prices);
-
-      // Update the main balance observable based on the selected token
-      if (selectedToken.value != null) {
-        balance.value = tokenBalances[selectedToken.value!.symbol] ?? 0.0;
-        final price = tokenPricesUSD[selectedToken.value!.symbol] ?? 0.0;
-        balanceUSD.value = balance.value * price;
-      } else {
-        balance.value = tokenBalances[networkInfo.currency] ?? 0.0;
-        final price = tokenPricesUSD[networkInfo.currency] ?? 0.0;
-        balanceUSD.value = balance.value * price;
-      }
-
-    } catch (e) {
-      Get.snackbar(
-        "Error",
-        "Failed to fetch balance: $e",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-      balance.value = 0.0;
-      balanceUSD.value = 0.0;
-      tokenBalances.clear();
-      tokenPricesUSD.clear();
+    if (validationError != null) {
+      privateKeyError.value = validationError;
+      _showSnackbar('Validation Error', validationError);
+      return;
     }
+
+    // Show password dialog for encryption
+    showPasswordDialog.value = true;
+    _showPasswordDialog();
   }
 
-  // Load addresses from file
-  Future<void> loadAddressesFromFile() async {
-    try {
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['txt'],
-        withData: true,
-      );
-
-      if (result != null && result.files.single.bytes != null) {
-        final bytes = result.files.single.bytes!;
-        final content = utf8.decode(bytes);
-        final lines = content.split('\n');
-        final addressList = lines
-            .map((line) => line.trim())
-            .where((line) => line.isNotEmpty)
-            .toList();
-
-        addressesController.text = addressList.join('\n');
-        addresses.value = addressesController.text;
-
-        Get.snackbar(
-          'Success',
-          'Loaded ${addressList.length} addresses from file',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-          duration: const Duration(seconds: 2),
-        );
-      }
-    } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to load file: $e',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-        duration: const Duration(seconds: 3),
-      );
-    }
+  void _showPasswordDialog() {
+    Get.dialog(
+      Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          width: isDesktop ? 400 : screenWidth.value * 0.9,
+          padding: const EdgeInsets.all(24),
+          decoration: AppTheme.glassCardDecoration,
+          child: Form(
+            key: passwordFormKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Secure Your Private Key',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.whiteText,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Enter a password to encrypt your private key',
+                  style: TextStyle(color: AppTheme.lightGrayText),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                TextFormField(
+                  controller: passwordController,
+                  focusNode: passwordFocusNode,
+                  obscureText: !isPasswordVisible.value,
+                  validator: validatePassword,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    hintText: 'Enter password',
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        isPasswordVisible.value ? Icons.visibility_off : Icons.visibility,
+                        color: AppTheme.lightGrayText,
+                      ),
+                      onPressed: togglePasswordVisibility,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Obx(() => CheckboxListTile(
+                  title: Text(
+                    'Remember password for this session',
+                    style: TextStyle(color: AppTheme.lightGrayText, fontSize: 14),
+                  ),
+                  value: rememberPassword.value,
+                  onChanged: (value) => rememberPassword.value = value ?? false,
+                  controlAffinity: ListTileControlAffinity.leading,
+                )),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () {
+                          Get.back();
+                          showPasswordDialog.value = false;
+                          passwordController.clear();
+                        },
+                        child: Text('Cancel', style: TextStyle(color: AppTheme.lightGrayText)),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: _processPrivateKeyImport,
+                        style: AppTheme.primaryButtonStyle,
+                        child: const Text('Import'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      barrierDismissible: false,
+    );
   }
 
-  // Validate inputs
-  bool _validateInputs() {
-    if (privateKey.value.trim().isEmpty) {
-      Get.snackbar(
-        'Error',
-        'Please enter your private key',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-      return false;
+  Future<void> _processPrivateKeyImport() async {
+    if (!passwordFormKey.currentState!.validate()) {
+      return;
     }
-
-    if (amount.value.trim().isEmpty) {
-      Get.snackbar(
-        'Error',
-        'Please enter the amount',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-      return false;
-    }
-
-    final amountValue = double.tryParse(amount.value.trim());
-    if (amountValue == null || amountValue <= 0) {
-      Get.snackbar(
-        'Error',
-        'Please enter a valid amount',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-      return false;
-    }
-
-    if (addresses.value.trim().isEmpty) {
-      Get.snackbar(
-        'Error',
-        'Please enter recipient addresses',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-      return false;
-    }
-
-    return true;
-  }
-
-  // Generate dummy transaction hash
-  String _generateDummyTxHash() {
-    const chars = '0123456789abcdef';
-    final random = Random();
-    return '0x${List.generate(64, (index) => chars[random.nextInt(chars.length)]).join()}';
-  }
-
-  // Send funds (simulated)
-  Future<void> sendFunds() async {
-    if (!_validateInputs()) return;
 
     isLoading.value = true;
-    transactionLinks.clear();
 
     try {
-      // Get network info
-      final networkInfo = networks[selectedNetwork.value];
-      if (networkInfo == null) {
-        throw Exception('Network not found');
+      final privateKey = privateKeyController.text.trim();
+      final password = passwordController.text.trim();
+
+      // Store encrypted private key
+      final stored = await SecureStorageService.savePrivateKey(privateKey, password);
+      if (!stored) {
+        throw Exception('Failed to store private key securely');
       }
 
-      // Parse addresses
-      final addressList = addresses.value
-          .split('\n')
-          .map((addr) => addr.trim())
-          .where((addr) => addr.isNotEmpty)
-          .toList();
+      // Get address from private key
+      final address = await _web3Service.getAddressFromPrivateKey(privateKey);
+      if (address != null) {
+        connectedAddress.value = address;
+        connectionType.value = 'privatekey';
+        isConnected.value = true;
 
-      if (addressList.isEmpty) {
-        throw Exception('No valid addresses found');
+        // Get balance
+        final ethAddress = EthereumAddress.fromHex(address);
+        final balance = await _web3Service.getBalance(ethAddress);
+        walletBalance.value = balance.getInEther.toDouble();
+
+        // Start session
+        _sessionService.startSession("Private Key Import", address);
+
+        Get.back(); // Close password dialog
+        showPasswordDialog.value = false;
+        passwordController.clear();
+        privateKeyController.clear();
+
+        _showSnackbar("Success", "Wallet imported successfully!");
+
+        Future.delayed(const Duration(milliseconds: 500), () {
+          Get.offNamed(Routes.multiSend);
+        });
+      } else {
+        throw Exception("Failed to derive address from private key");
       }
-
-      // Simulate transaction processing
-      for (int i = 0; i < addressList.length; i++) {
-        // Simulate network delay
-        await Future.delayed(const Duration(milliseconds: 500));
-
-        // Generate dummy transaction hash
-        final txHash = _generateDummyTxHash();
-        final explorerLink = '${networkInfo.explorerUrl}$txHash';
-        
-        transactionLinks.add(explorerLink);
-
-        // Update UI
-        transactionLinks.refresh();
-      }
-
-      Get.snackbar(
-        'Success',
-        'Funds sent to ${addressList.length} addresses successfully!',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-        duration: const Duration(seconds: 3),
-      );
-
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to send funds: $e',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-        duration: const Duration(seconds: 3),
-      );
+      privateKeyError.value = e.toString();
+      _showSnackbar('Import Error', e.toString());
     } finally {
       isLoading.value = false;
     }
   }
 
-  // Placeholder for connecting wallet (e.g., Metamask)
-  void connectWallet() {
+  // Network switching
+  Future<void> switchNetwork(String chainId) async {
+    if (!isConnected.value) return;
+
+    try {
+      bool success = false;
+      
+      if (connectionType.value == 'metamask') {
+        success = await _web3Service.switchChain('0x${int.parse(chainId).toRadixString(16)}');
+      } else if (connectionType.value == 'walletconnect') {
+        final result = await _walletConnectService.switchChain(chainId);
+        success = result != null;
+      }
+
+      if (success) {
+        currentChainId.value = chainId;
+        _updateNetworkInfo(chainId);
+        await _updateBalance();
+        _showSnackbar('Success', 'Switched to ${_web3Service.getNetworkName('0x${int.parse(chainId).toRadixString(16)}')}');
+      }
+    } catch (e) {
+      _showSnackbar('Error', 'Failed to switch network: ${e.toString()}');
+    }
+  }
+
+  // Disconnect wallet
+  Future<void> disconnect() async {
+    try {
+      if (connectionType.value == 'metamask') {
+        _web3Service.disconnect();
+      } else if (connectionType.value == 'walletconnect') {
+        await _walletConnectService.disconnect();
+      } else if (connectionType.value == 'privatekey') {
+        await SecureStorageService.clearPrivateKey();
+      }
+
+      _clearConnectionData();
+      _showSnackbar('Disconnected', 'Wallet disconnected successfully');
+    } catch (e) {
+      _showSnackbar('Error', 'Failed to disconnect: ${e.toString()}');
+    }
+  }
+
+  // Retry connection
+  void retryLastConnection() {
+    if (canRetry.value && lastError.value.isNotEmpty) {
+      hasError.value = false;
+      lastError.value = '';
+      canRetry.value = false;
+      // Implement retry logic based on last attempted connection
+    }
+  }
+
+  void _showSnackbar(String title, String message) {
     Get.snackbar(
-      'Connect Wallet',
-      'Metamask connection functionality will be implemented here.',
+      title,
+      message,
       snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.blueAccent,
-      colorText: Colors.white,
+      backgroundColor: AppTheme.secondaryBackground,
+      colorText: AppTheme.whiteText,
+      margin: const EdgeInsets.all(16),
+      borderRadius: 8,
       duration: const Duration(seconds: 3),
     );
   }
-
-  // Clear transaction links
-  void clearTransactionLinks() {
-    transactionLinks.clear();
-  }
-
-  // Clear all fields
-  void clearAllFields() {
-    privateKeyController.clear();
-    amountController.clear();
-    addressesController.clear();
-    privateKey.value = '';
-    amount.value = '';
-    addresses.value = '';
-    clearTransactionLinks();
-  }
 }
-
 
