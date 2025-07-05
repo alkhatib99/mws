@@ -707,7 +707,7 @@ class WalletConnectController extends GetxController
       ),
       itemCount: walletConnectOptions.length,
       itemBuilder: (context, index) {
-        var walletModel = WalletModel
+
         final wallet = walletConnectOptions[index];
         return WalletCard(
           name: wallet['name']!,
@@ -716,8 +716,7 @@ class WalletConnectController extends GetxController
           isAvailable: wallet['status']! == 'available',
           onTap: () => connectWallet(wallet['name']!),
           isDesktop: isDesktop,
-          isTablet: isTablet, 
-          wallet: null,
+          isTablet: isTablet,
         );
       },
     );

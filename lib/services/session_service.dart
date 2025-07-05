@@ -1,13 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
-// Conditional import for web platform
-import 'package:mws/web_stub.dart' as html_stub;
-// import 'package:g';
-
-//  'dart:html' if (dart.library.io) 
-
 import 'package:mws/app/data/models/session_data.dart';
+
+// Conditional import for web platform
+import 'dart:html' as html;
 
 class SessionService {
   static const String _storageKey = 'mws_session';
@@ -52,7 +49,7 @@ class SessionService {
     final expiry = DateTime.now().add(const Duration(hours: 24)); // Session lasts 24 hours
     final session = SessionData(walletName: walletName, address: address, expiry: expiry);
     if (kIsWeb) {
-      html_stub.html.window.localStorage[_storageKey] = jsonEncode(session.toJson());
+      html.window.localStorage[_storageKey] = jsonEncode(session.toJson());
     }
     connectedAddress.value = address;
     connectedWallet.value = walletName;
@@ -63,7 +60,7 @@ class SessionService {
   /// End the current session
   void endSession() {
     if (kIsWeb) {
-      html_stub.html.window.localStorage.remove(_storageKey);
+      html.window.localStorage.remove(_storageKey);
     }
     connectedAddress.value = '';
     connectedWallet.value = '';
@@ -76,7 +73,7 @@ class SessionService {
     connectedAddress.value = newAddress;
     // Update session in local storage if needed
     if (kIsWeb) {
-      final storedData = html_stub.html.window.localStorage[_storageKey];
+      final storedData = html.window.localStorage[_storageKey];
       if (storedData != null) {
         try {
           final Map<String, dynamic> data = jsonDecode(storedData);
@@ -86,7 +83,7 @@ class SessionService {
             address: newAddress,
             expiry: session.expiry,
           );
-          html_stub.html.window.localStorage[_storageKey] = jsonEncode(updatedSession.toJson());
+          html.window.localStorage[_storageKey] = jsonEncode(updatedSession.toJson());
         } catch (e) {
           print('Error updating session on account switch: $e');
         }
@@ -98,7 +95,7 @@ class SessionService {
   /// Set up auto-logout on page close/refresh for web
   void _setupAutoLogout() {
     if (kIsWeb) {
-      html_stub.html.window.addEventListener('beforeunload', (event) {
+      html.window.addEventListener("beforeunload", (event) {
         endSession();
       });
     }

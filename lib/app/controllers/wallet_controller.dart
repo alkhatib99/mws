@@ -301,6 +301,10 @@ class WalletController extends GetxController
 
   final  subtitleFontSize = 14.0;
 
+   navigateToMultiSendFromPrivateKey() async {
+    
+   }
+
   // final transactionLinks  =  ; // Default subtitle font size
 
   // Validation methods

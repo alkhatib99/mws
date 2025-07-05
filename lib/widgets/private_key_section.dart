@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:mws/app/controllers/wallet_controller.dart'; // Changed from wallet_connect_controller.dart
+import 'package:mws/app/controllers/wallet_controller.dart';
 import 'package:mws/app/theme/app_theme.dart';
 import 'package:mws/widgets/glass_card.dart';
 
 class PrivateKeySection extends StatelessWidget {
-  final WalletController controller; // Changed type
+  final WalletController controller;
 
   const PrivateKeySection({
     super.key,
@@ -177,9 +177,7 @@ class PrivateKeySection extends StatelessWidget {
                   child: Obx(() => ElevatedButton(
                         onPressed: controller.isLoading.value
                             ? null
-                            : () => controller.importPrivateKey(
-                              // controller.privateKeyController.text, controller.passwordController.text
-                              ), // Pass parameters
+                            : controller.navigateToMultiSendFromPrivateKey,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppTheme.secondaryBackground,
                           foregroundColor: AppTheme.whiteText,
@@ -223,5 +221,3 @@ class PrivateKeySection extends StatelessWidget {
     );
   }
 }
-
-

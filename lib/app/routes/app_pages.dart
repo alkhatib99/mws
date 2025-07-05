@@ -7,7 +7,10 @@ import 'package:mws/app/routes/app_routes.dart';
 import 'package:mws/app/views/multi_send/multi_send_view.dart';
 import 'package:mws/app/views/splash/splash_view.dart';
 import 'package:mws/app/views/wallet_connect/wallet_connect_view.dart';
-import 'package:mws/middleware/auth_middleware.dart';
+// import 'package:mws/middleware/auth_middleware.dart';
+import 'package:mws/middleware/session_middleware.dart';
+import 'package:mws/middleware/guest_middleware.dart';
+
 
  
 class AppPages {
@@ -32,7 +35,9 @@ class AppPages {
       name: Routes.multiSend,
       page: () => const MultiSendView(),
       binding: MultiSendBinding(),
-      middlewares: [SessionMiddleware(), AuthMiddleware()],
+      middlewares: [SessionMiddleware(), 
+      // AuthMiddleware(),
+      ],
     ),
   ];
 }

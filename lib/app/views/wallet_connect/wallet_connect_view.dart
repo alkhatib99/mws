@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mws/app/controllers/wallet_connect_controller.dart';
+import 'package:mws/app/controllers/wallet_controller.dart';
 import 'package:mws/app/theme/app_theme.dart';
 import 'package:mws/widgets/animated_logo.dart';
 import 'package:mws/widgets/glass_card.dart';
@@ -19,7 +20,7 @@ class WalletConnectView extends StatelessWidget {
   Widget build(BuildContext context) {
     final WalletConnectController controller = Get.find();
     // Ensure the controller is initialized
-
+  final   walletController = Get.find<WalletController>();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.updateScreenSize(MediaQuery.of(context).size);
     });
@@ -53,7 +54,7 @@ class WalletConnectView extends StatelessWidget {
                             children: [
                               _buildHeader(controller),
                               SizedBox(height: controller.verticalSpacing + 16),
-                              _buildMainContent(controller),
+                              _buildMainContent(controller, walletController),
                               SizedBox(height: controller.verticalSpacing),
                               _buildFooter(controller),
                             ],
@@ -94,7 +95,7 @@ class WalletConnectView extends StatelessWidget {
     );
   }
 
-  Widget _buildMainContent(WalletConnectController controller) {
+  Widget _buildMainContent(WalletConnectController controller , WalletController wa) {
     return Column(
       children: [
         // Connection Status Widget
@@ -116,7 +117,7 @@ class WalletConnectView extends StatelessWidget {
 
         _buildWalletOptions(controller),
         SizedBox(height: controller.sectionSpacing),
-        PrivateKeySection(controller: controller),
+        PrivateKeySection(controller: wa),
       ],
     );
   }
@@ -210,7 +211,7 @@ class WalletConnectView extends StatelessWidget {
       iconPath: iconPath,
       description: description,
       isAvailable: isAvailable,
-      isLoading: controller.isWalletConnecting(name),
+            isConnecting: controller.isWalletConnecting(name),
       isDesktop: controller.isDesktop,
       isTablet: controller.isTablet,
       onTap: () {
