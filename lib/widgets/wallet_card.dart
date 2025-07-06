@@ -81,10 +81,11 @@ class _WalletCardState extends State< WalletCard>
 
   @override
   Widget build(BuildContext context) {
-    final cardHeight = widget.isDesktop ? 120.0 : widget.isTablet ? 110.0 : 100.0;
+    // final cardHeight = widget.isDesktop ? 120.0 : widget.isTablet ? 110.0 : 100.0;
     final iconSize = widget.isDesktop ? 48.0 : widget.isTablet ? 40.0 : 37.0;
     final titleFontSize = widget.isDesktop ? 15.0 : widget.isTablet ? 14.0 : 13.0;
     final descriptionFontSize = widget.isDesktop ? 12.0 : widget.isTablet ? 11.0 : 10.0;
+final cardHeight = widget.isDesktop ? 180.0 : widget.isTablet ? 170.0 : 160.0;
 
     return AnimatedBuilder(
       animation: _animationController,
@@ -122,22 +123,67 @@ class _WalletCardState extends State< WalletCard>
                     // Card content
                     Padding(
                       padding: EdgeInsets.all(widget.isDesktop ? 20.0 : 16.0),
-                      child: Row(
-                        children: [
-                          // Wallet icon
-                          _buildWalletIcon(iconSize),
+                      child:
+                      Center(
+  child: Column(
+    mainAxisAlignment: MainAxisAlignment.center,
+    crossAxisAlignment: CrossAxisAlignment.center,
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      _buildWalletIcon(iconSize),
+      const SizedBox(height: 12),
+      Text(
+        widget.name,
+        style: TextStyle(
+          fontSize: titleFontSize,
+          fontWeight: FontWeight.bold,
+          color: widget.isAvailable
+              ? AppTheme.whiteText
+              : AppTheme.lightGrayText,
+          fontFamily: 'Montserrat',
+        ),
+        textAlign: TextAlign.center,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      const SizedBox(height: 4),
+      Text(
+        widget.description,
+        style: TextStyle(
+          fontSize: descriptionFontSize,
+          color: widget.isAvailable
+              ? AppTheme.lightGrayText
+              : AppTheme.lightGrayText.withOpacity(0.5),
+          fontFamily: 'Montserrat',
+        ),
+        textAlign: TextAlign.center,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+      ),
+      const SizedBox(height: 12),
+      _buildStatusIndicator(),
+    ],
+  ),
+)
+
+                      //  Row(
+                      //   children: [
+                      //     // Wallet icon
+                      //     _buildWalletIcon(iconSize),
                           
-                          SizedBox(width: widget.isDesktop ? 16.0 : 12.0),
+                      //     SizedBox(width: widget.isDesktop ? 16.0 : 12.0),
                           
-                          // Wallet info
-                          Expanded(
-                            child: _buildWalletInfo(titleFontSize, descriptionFontSize),
-                          ),
+                      //     // Wallet info
+                      //     Expanded(
+                      //       child: _buildWalletInfo(titleFontSize, descriptionFontSize),
+                      //     ),
                           
-                          // Status indicator
-                          _buildStatusIndicator(),
-                        ],
-                      ),
+                      //     // Status indicator
+                      //     _buildStatusIndicator(),
+                      //   ],
+                      // ),
+          
+          
                     ),
                     
                     // Loading overlay
@@ -276,40 +322,40 @@ class _WalletCardState extends State< WalletCard>
     );
   }
 
-  Widget _buildWalletInfo(double titleFontSize, double descriptionFontSize) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          widget.name,
-          style: TextStyle(
-            fontSize: titleFontSize,
-            fontWeight: FontWeight.bold,
-            color: widget.isAvailable 
-                ? AppTheme.whiteText 
-                : AppTheme.lightGrayText,
-            fontFamily: 'Montserrat',
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        const SizedBox(height: 4),
-        Text(
-          widget.description,
-          style: TextStyle(
-            fontSize: descriptionFontSize,
-            color: widget.isAvailable 
-                ? AppTheme.lightGrayText 
-                : AppTheme.lightGrayText.withOpacity(0.5),
-            fontFamily: 'Montserrat',
-          ),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ],
-    );
-  }
+  // Widget _buildWalletInfo(double titleFontSize, double descriptionFontSize) {
+  //   return Column(
+  //     crossAxisAlignment: CrossAxisAlignment.start,
+  //     mainAxisAlignment: MainAxisAlignment.center,
+  //     children: [
+  //       Text(
+  //         widget.name,
+  //         style: TextStyle(
+  //           fontSize: titleFontSize,
+  //           fontWeight: FontWeight.bold,
+  //           color: widget.isAvailable 
+  //               ? AppTheme.whiteText 
+  //               : AppTheme.lightGrayText,
+  //           fontFamily: 'Montserrat',
+  //         ),
+  //         maxLines: 1,
+  //         overflow: TextOverflow.ellipsis,
+  //       ),
+  //       const SizedBox(height: 4),
+  //       Text(
+  //         widget.description,
+  //         style: TextStyle(
+  //           fontSize: descriptionFontSize,
+  //           color: widget.isAvailable 
+  //               ? AppTheme.lightGrayText 
+  //               : AppTheme.lightGrayText.withOpacity(0.5),
+  //           fontFamily: 'Montserrat',
+  //         ),
+  //         maxLines: 2,
+  //         overflow: TextOverflow.ellipsis,
+  //       ),
+  //     ],
+  //   );
+  // }
 
   Widget _buildStatusIndicator() {
     if (widget.isConnecting) {

@@ -25,7 +25,7 @@ class AppPages {
     ),
     GetPage(
       name: Routes.walletConnect,
-      page: () => const WalletConnectView(),
+      page: () =>  WalletConnectView(),
       binding: WalletConnectBinding(),
       // middlewares: [SessionMiddleware(), GuestMiddleware()],
     ),

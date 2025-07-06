@@ -1,27 +1,30 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:mws/utils/constants.dart';
 import 'package:reown_appkit/reown_appkit.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class  WalletConnectService {
+class WalletConnectService {
   ReownAppKit? _appKit;
   String? _connectedAddress;
   String? _connectedWalletName;
   String? _sessionTopic;
   String? _currentChainId;
-  
+
   // Event streams
-  final StreamController<Map<String, String>> _sessionEstablishedController = 
+  final StreamController<Map<String, String>> _sessionEstablishedController =
       StreamController<Map<String, String>>.broadcast();
-  final StreamController<void> _sessionDisconnectedController = 
+  final StreamController<void> _sessionDisconnectedController =
       StreamController<void>.broadcast();
-  final StreamController<String> _connectionErrorController = 
+  final StreamController<String> _connectionErrorController =
       StreamController<String>.broadcast();
-  final StreamController<String> _chainChangedController = 
+  final StreamController<String> _chainChangedController =
       StreamController<String>.broadcast();
 
-  Stream<Map<String, String>> get onSessionEstablished => _sessionEstablishedController.stream;
-  Stream<void> get onSessionDisconnected => _sessionDisconnectedController.stream;
+  Stream<Map<String, String>> get onSessionEstablished =>
+      _sessionEstablishedController.stream;
+  Stream<void> get onSessionDisconnected =>
+      _sessionDisconnectedController.stream;
   Stream<String> get onConnectionError => _connectionErrorController.stream;
   Stream<String> get onChainChanged => _chainChangedController.stream;
 
@@ -31,33 +34,46 @@ class  WalletConnectService {
   String? get connectedWalletName => _connectedWalletName;
   String? get currentChainId => _currentChainId;
 
-  Future<void> initialize({required String projectId}) async {
+  Future<void> initialize() async {
+    print("Initializing WalletConnectService");
     try {
       _appKit = ReownAppKit(
         core: ReownCore(
-          projectId: projectId,
+          projectId: AppConstants.REOWN_PROJECT_ID,
         ),
         metadata: PairingMetadata(
-          name: 'BAG MWS DApp',
-          description: 'Multi Wallet Sender - Send crypto to multiple addresses at once',
-          url: 'https://mws-dapp.com',
-          icons: ['https://mws-dapp.com/logo.png'],
-          redirect: Redirect(
-            native: 'mwsdapp://',
-            universal: 'https://mws-dapp.com/redirect',
-          ),
+          name: AppConstants.REOWN_APP_NAME,
+          description: AppConstants.REOWN_APP_DESCRIPTION,
+          url: AppConstants.REOWN_APP_URL,
+          icons: [AppConstants.REOWN_APP_ICON],
+          // redirect: Redirect(
+          //   native: 'mwsdapp://',
+          //   universal: 'https://mws-dapp.com/redirect',
+          // ),
         ),
       );
-
+      // Initialize the AppKit instance
+      print("ReownAppKit instance created");
       await _appKit!.init();
+      print("ReownAppKit initialized successfully");
       _setupEventListeners();
+      print("Event listeners set up successfully");
     } catch (e) {
-      _connectionErrorController.add('Failed to initialize WalletConnect: ${e.toString()}');
+      print("Error initializing WalletConnect: ${e.toString()}");
+      _connectionErrorController
+          .add('Failed to initialize WalletConnect: ${e.toString()}');
     }
   }
 
   void _setupEventListeners() {
-    if (_appKit == null) return;
+    print(
+        "Setting up event listeners for WalletConnectService instance                 ");
+    // Ensure the appKit instance is initialized
+
+    if (_appKit == null) {
+      print("AppKit instance is null, cannot set up event listeners.");
+      return;
+    }
 
     // Session connect event
     _appKit!.onSessionConnect.subscribe((SessionConnect? event) {
@@ -72,7 +88,7 @@ class  WalletConnectService {
               _currentChainId = parts[1];
               _connectedWalletName = event.session.peer.metadata.name;
               _sessionTopic = event.session.topic;
-              
+
               _sessionEstablishedController.add({
                 'address': _connectedAddress!,
                 'walletName': _connectedWalletName!,
@@ -81,7 +97,8 @@ class  WalletConnectService {
             }
           }
         } catch (e) {
-          _connectionErrorController.add('Error processing session connect: ${e.toString()}');
+          _connectionErrorController
+              .add('Error processing session connect: ${e.toString()}');
         }
       }
     });
@@ -96,8 +113,7 @@ class  WalletConnectService {
     _appKit!.onSessionUpdate.subscribe((SessionUpdate? event) {
       if (event != null && event.namespaces.isNotEmpty) {
         try {
-          final namespace = event
-          .namespaces['eip155'];
+          final namespace = event.namespaces['eip155'];
           if (namespace != null && namespace.accounts.isNotEmpty) {
             final accountString = namespace.accounts.first;
             final parts = accountString.split(':');
@@ -110,10 +126,13 @@ class  WalletConnectService {
             }
           }
         } catch (e) {
-          _connectionErrorController.add('Error processing session update: ${e.toString()}');
+          _connectionErrorController
+              .add('Error processing session update: ${e.toString()}');
         }
       }
     });
+
+    print("Event listeners set up successfully for WalletConnectService instance"); 
   }
 
   void _clearSession() {
@@ -136,16 +155,21 @@ class  WalletConnectService {
         requiredNamespaces: requiredNamespaces,
         optionalNamespaces: {
           'eip155': RequiredNamespace(
-            methods: ['eth_sendTransaction', 'personal_sign', 'eth_signTypedData'],
+            methods: [
+              'eth_sendTransaction',
+              'personal_sign',
+              'eth_signTypedData'
+            ],
             chains: chains,
             events: ['chainChanged', 'accountsChanged'],
           ),
         },
       );
-      
+
       return connectResponse.uri.toString();
     } catch (e) {
-      _connectionErrorController.add('Failed to create pairing URI: ${e.toString()}');
+      _connectionErrorController
+          .add('Failed to create pairing URI: ${e.toString()}');
       return null;
     }
   }
@@ -197,7 +221,7 @@ class  WalletConnectService {
           params: [params],
         ),
       );
-      
+
       return result.toString();
     } catch (e) {
       _connectionErrorController.add('Transaction failed: ${e.toString()}');
@@ -224,7 +248,7 @@ class  WalletConnectService {
           params: [message, address],
         ),
       );
-      
+
       return result.toString();
     } catch (e) {
       _connectionErrorController.add('Personal sign failed: ${e.toString()}');
@@ -240,16 +264,18 @@ class  WalletConnectService {
 
     try {
       final hexChainId = '0x${int.parse(chainId).toRadixString(16)}';
-      
+
       await _appKit!.request(
         topic: _sessionTopic!,
         chainId: 'eip155:$chainId',
         request: SessionRequestParams(
           method: 'wallet_switchEthereumChain',
-          params: [{'chainId': hexChainId}],
+          params: [
+            {'chainId': hexChainId}
+          ],
         ),
       );
-      
+
       _currentChainId = chainId;
       return chainId;
     } catch (e) {
@@ -285,14 +311,6 @@ class  WalletConnectService {
         'universalLink': 'https://go.cb-w.com/wc',
       },
       {
-        'name': 'Rainbow',
-        'icon': 'assets/images/rainbow_logo.png',
-        'description': 'Connect via Rainbow mobile app',
-        'status': 'available',
-        'deepLink': 'rainbow://wc',
-        'universalLink': 'https://rnbwapp.com/wc',
-      },
-      {
         'name': 'Ledger Live',
         'icon': 'assets/images/ledger_logo.png',
         'description': 'Connect via Ledger Live',
@@ -317,25 +335,29 @@ class  WalletConnectService {
 
     try {
       final encodedUri = Uri.encodeComponent(uri);
-      
+
       // Try deep link first
       final deepLink = '${wallet['deepLink']}?uri=$encodedUri';
       if (await canLaunchUrl(Uri.parse(deepLink))) {
-        await launchUrl(Uri.parse(deepLink), mode: LaunchMode.externalApplication);
+        await launchUrl(Uri.parse(deepLink),
+            mode: LaunchMode.externalApplication);
         return;
       }
 
       // Fallback to universal link
       final universalLink = '${wallet['universalLink']}?uri=$encodedUri';
       if (await canLaunchUrl(Uri.parse(universalLink))) {
-        await launchUrl(Uri.parse(universalLink), mode: LaunchMode.externalApplication);
+        await launchUrl(Uri.parse(universalLink),
+            mode: LaunchMode.externalApplication);
         return;
       }
 
       // If both fail, show error
-      _connectionErrorController.add('Could not open $walletName. Please make sure it is installed.');
+      _connectionErrorController
+          .add('Could not open $walletName. Please make sure it is installed.');
     } catch (e) {
-      _connectionErrorController.add('Failed to open $walletName: ${e.toString()}');
+      _connectionErrorController
+          .add('Failed to open $walletName: ${e.toString()}');
     }
   }
 
@@ -346,4 +368,3 @@ class  WalletConnectService {
     _chainChangedController.close();
   }
 }
-

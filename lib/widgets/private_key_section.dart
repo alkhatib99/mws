@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mws/app/controllers/wallet_connect_controller.dart';
 import 'package:mws/app/controllers/wallet_controller.dart';
 import 'package:mws/app/theme/app_theme.dart';
 import 'package:mws/widgets/glass_card.dart';
 
 class PrivateKeySection extends StatelessWidget {
-  final WalletController controller;
+  final WalletConnectController controller;
 
   const PrivateKeySection({
     super.key,
@@ -174,44 +175,44 @@ class PrivateKeySection extends StatelessWidget {
                       : isTablet
                           ? 52
                           : 48,
-                  child: Obx(() => ElevatedButton(
-                        onPressed: controller.isLoading.value
-                            ? null
-                            : controller.navigateToMultiSendFromPrivateKey,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.secondaryBackground,
-                          foregroundColor: AppTheme.whiteText,
-                          elevation: 0,
-                          shadowColor:
-                              AppTheme.secondaryBackground.withOpacity(0.3),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: controller.isLoading.value
-                            ? SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    AppTheme.whiteText,
-                                  ),
-                                ),
-                              )
-                            : Text(
-                                'Import Wallet',
-                                style: TextStyle(
-                                  fontSize: isDesktop
-                                      ? 16
-                                      : isTablet
-                                          ? 14
-                                          : 12,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: 'Montserrat',
+                  child: ElevatedButton(
+                    onPressed: () => controller.navigateToMultiSendFromPrivateKey(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.secondaryBackground,
+                      foregroundColor: AppTheme.whiteText,
+                      elevation: 0,
+                      shadowColor:
+                          AppTheme.secondaryBackground.withOpacity(0.3),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Obx(
+                      () => controller.isLoading.value
+                          ? SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  AppTheme.whiteText,
                                 ),
                               ),
-                      )),
+                            )
+                          : Text(
+                              'Import Wallet',
+                              style: TextStyle(
+                                fontSize: isDesktop
+                                    ? 16
+                                    : isTablet
+                                        ? 14
+                                        : 12,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Montserrat',
+                              ),
+                            ),
+                    ),
+                  ),
                 ),
               ],
             ),

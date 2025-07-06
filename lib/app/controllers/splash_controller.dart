@@ -33,7 +33,7 @@ class SplashController extends GetxController {
     subtitleOffset.value = Offset.zero;
     subtitleOpacity.value = 1.0;
 
-    await Future.delayed(const Duration(seconds: 2));
+    await Future.delayed(const Duration(seconds: 3));
     
     // Check if there's an active session
     if (_sessionService.isSessionActive.value && _sessionService.connectedAddress.value.isNotEmpty) {
