@@ -6,7 +6,7 @@ class AppTheme {
   static const Color secondaryBackground = Color(0xFF1A1A1A); // Card/container backgrounds
   static const Color primaryAccent = Color(0xFF8B5CF6); // Primary purple accent
   static const Color goldAccent = Color(0xFFF59E0B); // Gold accent for success/premium
-  static const Color blueAccent = Color(0xFF3B82F6); // Blue accent for info/secondary
+  static const Color secondaryAccent = Color(0xFF74B9FF); // Blue accent for info/secondary
   static const Color successGreen = Color(0xFF10B981); // Success states
   static const Color warningRed = Color(0xFFEF4444); // Error/warning states
   static const Color neutralGray = Color(0xFF374151); // Neutral borders/dividers
@@ -26,7 +26,7 @@ class AppTheme {
       primaryColor: primaryAccent,
       colorScheme: const ColorScheme.dark(
         primary: primaryAccent,
-        secondary: blueAccent,
+        secondary: Colors.blueAccent,
         surface: secondaryBackground,
         onPrimary: Colors.white,
         onSecondary: Colors.white,
@@ -43,7 +43,7 @@ class AppTheme {
           color: whiteText,
           fontSize: 20,
           fontWeight: FontWeight.bold,
-          fontFamily: 'Montserrat',
+          fontFamily: 'Montserrat', // Changed font
         ),
       ),
 
@@ -90,7 +90,7 @@ class AppTheme {
         filled: true,
         fillColor: textFieldBackground,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12), // More rounded corners
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
@@ -123,12 +123,12 @@ class AppTheme {
       // Elevated Button Theme
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: primaryAccent,
+          backgroundColor: primaryAccent, // Use primaryAccent for main buttons
           foregroundColor: Colors.white,
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(12), // More rounded corners
           ),
           textStyle: const TextStyle(
             fontSize: 16,
@@ -141,15 +141,15 @@ class AppTheme {
       // Outlined Button Theme
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          backgroundColor: Colors.transparent,
-          foregroundColor: primaryAccent,
+          backgroundColor: Colors.transparent, // Transparent background
+          foregroundColor: primaryAccent, // Accent color for text/icon
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
           side:
-              const BorderSide(color: primaryAccent, width: 2),
+              const BorderSide(color: primaryAccent, width: 2), // Accent border
           textStyle: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
@@ -161,8 +161,8 @@ class AppTheme {
       // Text Button Theme
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          backgroundColor: Colors.transparent,
-          foregroundColor: lightGrayText,
+          backgroundColor: Colors.transparent, // Transparent background
+          foregroundColor: lightGrayText, // Light gray for text
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           shape: RoundedRectangleBorder(
@@ -305,5 +305,3 @@ class AppTheme {
         ),
       );
 }
-
-

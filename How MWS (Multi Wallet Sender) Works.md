@@ -2,162 +2,191 @@
 
 ## Overview
 
-Multi Wallet Sender (MWS) is a decentralized application (DApp) built on Web3 technology that enables users to send cryptocurrency to multiple wallet addresses simultaneously. This application operates entirely on the client-side, ensuring maximum security, privacy, and decentralization.
+MWS (Multi Wallet Sender) is a **fully decentralized application (DApp)** that allows users to send cryptocurrency to multiple wallet addresses simultaneously. The application operates entirely on the client-side without any backend servers, ensuring complete user privacy and security.
 
-## What Makes MWS Decentralized
+## 🔒 Decentralization & Privacy
 
-### No Backend Data Storage
-MWS is designed as a true decentralized application with the following characteristics:
+### No Backend Server
+- **Zero server dependency**: All operations happen directly in your browser
+- **No user data storage**: We never store, collect, or transmit your personal information
+- **No transaction history**: Your transaction data remains private and local
+- **No account creation**: No registration, emails, or personal details required
 
-- **No user data storage**: The application does not store any personal information, private keys, or transaction data on any centralized server
-- **Client-side only**: All operations are performed locally in your browser or device
-- **No central database**: There is no backend database that collects or stores user information
-- **No authentication servers**: Authentication is handled entirely through wallet connections
+### Client-Side Only Operations
+- All wallet connections are handled locally in your browser
+- Private keys (if imported) are encrypted and stored only in browser memory
+- All blockchain interactions use direct JSON-RPC calls to public nodes
+- No intermediary services or APIs for transaction processing
 
-### Blockchain-First Architecture
-The application interacts directly with blockchain networks without intermediaries:
+## 🔗 How Wallet Connection Works
 
-- **Direct blockchain interaction**: Transactions are sent directly to the blockchain network
-- **No proxy servers**: No centralized servers act as intermediaries for your transactions
-- **Immutable records**: All transaction records exist only on the blockchain, ensuring transparency and immutability
+### 1. MetaMask Browser Extension
+- **Direct Integration**: Connects directly to your MetaMask extension
+- **No Private Key Exposure**: Uses MetaMask's secure signing mechanism
+- **Automatic Network Detection**: Detects and switches between supported networks
+- **Real-time Updates**: Listens for account and network changes
 
-## Privacy and Security Guarantees
+### 2. WalletConnect Protocol
+- **QR Code Connection**: Scan QR code with your mobile wallet
+- **Deep Link Support**: Direct connection to supported mobile wallets
+- **Secure Communication**: End-to-end encrypted communication channel
+- **Multi-Wallet Support**: Works with Trust Wallet, Coinbase Wallet, Rainbow, and more
 
-### We Do Not Store or Access Your Data
-MWS is committed to protecting your privacy and security:
+### 3. Private Key Import (Advanced Users)
+- **Local Encryption**: Private keys are encrypted with your password
+- **Memory-Only Storage**: Keys stored only in browser memory, never on disk
+- **Automatic Cleanup**: Keys are cleared when you close the browser
+- **Security Warning**: Clear warnings about browser-based private key usage
 
-- **Private keys remain private**: Your private keys never leave your device or wallet
-- **No data collection**: We do not collect, store, or transmit any personal information
-- **No tracking**: The application does not track user behavior or transaction patterns
-- **No analytics**: No user analytics or tracking scripts are embedded in the application
+## 🌐 Blockchain Interaction
 
-### Local-Only Operations
-All sensitive operations are performed locally:
-
-- **Local key derivation**: Address derivation from private keys happens in your browser
-- **Local transaction signing**: Transactions are signed locally before being broadcast
-- **Local validation**: Input validation and error checking occur on your device
-
-## Wallet Connection and Authentication
-
-### Supported Wallet Types
-MWS supports multiple wallet connection methods:
-
-1. **Browser Extension Wallets**
-   - MetaMask
-   - Coinbase Wallet
-   - Trust Wallet (browser extension)
-
-2. **WalletConnect Protocol**
-   - Any mobile wallet supporting WalletConnect
-   - Ledger hardware wallets
-   - Trust Wallet mobile
-   - Rainbow Wallet
-   - Phantom (for Solana support)
-
-3. **Private Key Import**
-   - Direct private key import for advanced users
-   - Local-only storage during session
-   - Automatic cleanup on session end
-
-### Authentication Process
-The authentication process is entirely decentralized:
-
-1. **Wallet Selection**: User selects their preferred wallet type
-2. **Connection Request**: Application requests connection to the selected wallet
-3. **User Approval**: User approves the connection in their wallet application
-4. **Address Retrieval**: The wallet provides the public address (no private keys are shared)
-5. **Session Establishment**: A local session is established for the duration of use
-
-## Transaction Handling via Web3
-
-### How Transactions Work
-MWS uses Web3 technology to handle all blockchain interactions:
-
-1. **Transaction Preparation**
-   - User inputs recipient addresses and amounts
-   - Application validates all inputs locally
-   - Transaction parameters are prepared according to blockchain standards
-
-2. **Transaction Signing**
-   - Transactions are signed using the connected wallet
-   - Private keys never leave the wallet environment
-   - Multiple transactions are prepared for batch sending
-
-3. **Blockchain Submission**
-   - Signed transactions are submitted directly to the blockchain network
-   - No intermediary servers are involved in the process
-   - Transaction hashes are returned for tracking
-
-4. **Confirmation Tracking**
-   - Users can track transaction status using blockchain explorers
-   - All transaction records exist on the public blockchain
-   - No centralized tracking or logging occurs
+### Decentralized RPC Network
+- **Multiple Public Nodes**: Uses multiple public RPC endpoints for redundancy
+- **Automatic Failover**: Switches to backup nodes if primary fails
+- **Custom RPC Support**: Add your own RPC endpoints (Infura, Alchemy, etc.)
+- **Health Monitoring**: Continuously monitors RPC endpoint health
 
 ### Supported Networks
-MWS supports multiple blockchain networks:
-
-- **Ethereum Mainnet**: Primary Ethereum network
-- **Base Network**: Layer 2 solution for faster, cheaper transactions
-- **Polygon**: Scalable blockchain network
+- **Ethereum Mainnet**: Native ETH transactions
+- **Binance Smart Chain**: BNB and BEP-20 tokens
+- **Polygon**: MATIC and Polygon tokens
+- **Base**: Coinbase's Layer 2 network
 - **Arbitrum**: Ethereum Layer 2 scaling solution
-- **Custom Networks**: Users can add custom RPC endpoints
+- **Optimism**: Another Ethereum Layer 2 solution
 
-### Gas Fee Management
-Gas fees are handled transparently:
+### Gas Optimization
+- **Dynamic Gas Estimation**: Real-time gas price estimation from multiple sources
+- **Median Gas Pricing**: Uses median gas price from multiple RPC endpoints
+- **Smart Gas Limits**: Automatic gas limit estimation with safety buffers
+- **Retry Logic**: Automatic retry with adjusted gas prices if transactions fail
 
-- **Real-time estimation**: Gas fees are estimated in real-time
-- **User control**: Users can adjust gas prices according to their preferences
-- **Network optimization**: Automatic network selection for optimal fees
+## 💸 Multi-Send Transaction Process
 
-## Technical Architecture
+### 1. Transaction Preparation
+- **Address Validation**: Validates all recipient addresses before sending
+- **Balance Checking**: Ensures sufficient balance for all transactions
+- **Gas Calculation**: Calculates total gas costs for all transactions
+- **Nonce Management**: Proper nonce sequencing for multiple transactions
 
-### Frontend Technology Stack
-- **Flutter Web**: Cross-platform framework for web, mobile, and desktop
-- **GetX**: State management and dependency injection
-- **Web3Dart**: Ethereum blockchain interaction library
-- **WalletConnect**: Protocol for connecting mobile wallets
+### 2. Transaction Execution
+- **Sequential Processing**: Sends transactions in order to maintain nonce sequence
+- **Real-time Monitoring**: Tracks transaction status and confirmations
+- **Error Handling**: Continues with remaining transactions if one fails
+- **Confirmation Tracking**: Monitors blockchain confirmations for each transaction
 
-### Security Measures
-- **Input validation**: All user inputs are validated locally
-- **Error handling**: Comprehensive error handling prevents data loss
-- **Session management**: Secure session handling with automatic cleanup
-- **Network security**: All blockchain communications use secure protocols
+### 3. Transaction Security
+- **Local Signing**: All transactions signed locally in your browser
+- **No Transaction Relay**: Direct submission to blockchain networks
+- **Transparent Fees**: Clear display of all gas costs before confirmation
+- **Immutable Records**: All transactions recorded on public blockchain
 
-### Performance Optimization
-- **Batch processing**: Multiple transactions can be processed simultaneously
-- **Network efficiency**: Optimized for minimal network requests
-- **Responsive design**: Optimized for all device types and screen sizes
+## 🛡️ Security Features
 
-## User Benefits
+### Private Key Protection
+- **Never Transmitted**: Private keys never leave your device
+- **Encrypted Storage**: If imported, keys are encrypted with your password
+- **Memory-Only**: No persistent storage of sensitive data
+- **Automatic Cleanup**: All data cleared on browser close
+
+### Transaction Security
+- **Local Validation**: All transaction data validated locally
+- **Secure Signing**: Uses wallet's native signing mechanisms
+- **No Proxy Contracts**: Direct blockchain interaction without intermediaries
+- **Transparent Operations**: All code is open-source and auditable
+
+### Network Security
+- **HTTPS Only**: All connections use secure HTTPS protocol
+- **No Third-Party Tracking**: No analytics or tracking scripts
+- **Content Security Policy**: Strict CSP headers prevent XSS attacks
+- **Subresource Integrity**: Ensures loaded resources haven't been tampered with
+
+## 🔍 What Data We DON'T Collect
+
+### Personal Information
+- ❌ No email addresses or personal details
+- ❌ No wallet addresses or balances
+- ❌ No transaction history or amounts
+- ❌ No IP addresses or location data
+- ❌ No usage analytics or tracking
+
+### Technical Data
+- ❌ No private keys or seed phrases
+- ❌ No transaction signatures
+- ❌ No wallet connection details
+- ❌ No network preferences
+- ❌ No error logs or debugging data
+
+## 🌟 Benefits of Decentralization
 
 ### Complete Privacy
-- No personal information required
-- No account creation or registration
-- No data tracking or collection
-- Anonymous usage supported
+- Your financial data remains completely private
+- No corporate surveillance or data mining
+- No risk of data breaches or leaks
+- Full control over your information
 
-### Maximum Security
-- Private keys never exposed to the application
-- All operations performed locally
+### Censorship Resistance
+- No central authority can block your transactions
+- Works as long as blockchain networks are operational
+- No account freezing or service termination
+- Global accessibility without restrictions
+
+### Trustless Operation
+- No need to trust a company with your funds
+- Transparent, auditable code
 - Direct blockchain interaction
-- No centralized points of failure
+- Self-sovereign financial operations
 
-### Full Control
-- Users maintain complete control over their funds
-- No custodial services or fund holding
-- Direct wallet integration
-- Transparent transaction process
+## 🚀 Getting Started
 
-### Efficiency
-- Batch sending to multiple addresses
-- Optimized gas usage
-- Fast transaction processing
-- Real-time status updates
+1. **Connect Your Wallet**: Choose from MetaMask, WalletConnect, or private key import
+2. **Select Network**: Choose your preferred blockchain network
+3. **Add Recipients**: Enter multiple wallet addresses (one per line or upload file)
+4. **Set Amount**: Specify the amount to send to each address
+5. **Review & Send**: Confirm transaction details and gas costs
+6. **Monitor Progress**: Track transaction confirmations in real-time
 
-## Conclusion
+## ⚠️ Important Security Notes
 
-MWS represents the true spirit of decentralized finance (DeFi) by providing a secure, private, and efficient way to send cryptocurrency to multiple recipients. By operating entirely on the client-side and interacting directly with blockchain networks, MWS ensures that users maintain complete control over their funds and data while benefiting from the transparency and immutability of blockchain technology.
+### Browser-Based Private Keys
+If you choose to import a private key:
+- Only use on trusted, secure devices
+- Never use your main wallet's private key
+- Consider using a dedicated wallet for multi-send operations
+- Always clear browser data after use
 
-The application's commitment to privacy, security, and decentralization makes it an ideal tool for anyone looking to leverage the power of Web3 technology for multi-recipient cryptocurrency transactions.
+### Network Security
+- Always verify you're on the correct network
+- Double-check all recipient addresses
+- Start with small test amounts
+- Keep your wallet software updated
+
+### Transaction Finality
+- Blockchain transactions are irreversible
+- Always verify recipient addresses
+- Consider the gas costs for failed transactions
+- Monitor network congestion for optimal timing
+
+## 🔧 Technical Architecture
+
+### Frontend Technology
+- **Flutter Web**: Cross-platform web application framework
+- **Web3Dart**: Ethereum blockchain interaction library
+- **ReownAppKit**: WalletConnect v2 protocol implementation
+- **Responsive Design**: Works on desktop, tablet, and mobile devices
+
+### Blockchain Integration
+- **Direct RPC Calls**: No intermediary APIs or services
+- **Multiple RPC Endpoints**: Redundancy and reliability
+- **Real-time Event Listening**: Account and network change detection
+- **Gas Optimization**: Smart gas price and limit calculation
+
+### Security Implementation
+- **Client-Side Encryption**: AES encryption for sensitive data
+- **Secure Random Generation**: Cryptographically secure randomness
+- **Input Validation**: Comprehensive validation of all user inputs
+- **Error Handling**: Graceful handling of network and user errors
+
+---
+
+**MWS is designed to be the most secure, private, and user-friendly multi-send solution in the DeFi ecosystem. By operating entirely without servers, we ensure that your financial privacy and security are never compromised.**
 
